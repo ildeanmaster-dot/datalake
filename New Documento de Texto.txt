@@ -1,0 +1,1145 @@
+-- =====================================================
+-- SAFe Story Analysis - Complete View (All 247 Columns)
+-- =====================================================
+-- Related Tables (Frequent Joins):
+--   - dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint
+--   - dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective
+-- =====================================================
+
+SELECT 
+  -- ==================== STORY IDENTIFICATION ====================
+  number,                          -- Story number (STS######)
+  type,                            -- Type of story
+  dv_type,                         -- Display value for type
+  backlog_type,                    -- Backlog type (product, enabler, etc)
+  dv_backlog_type,                 -- Display value for backlog type
+  classification,                  -- Story classification
+  
+  -- ==================== STATUS & STATE ====================
+  active,                          -- Is story active? (boolean)
+  state,                           -- State code
+  dv_state,                        -- Display value for state
+  status,                          -- Status code
+  dv_status,                       -- Display value for status
+  blocked,                         -- Is story blocked? (boolean)
+  blocked_reason,                  -- Reason for blocking
+  approval,                        -- Approval status code
+  dv_approval,                     -- Display value for approval
+  approval_history,                -- History of approvals
+  approval_set,                    -- When approval was set
+  action_status,                   -- Action status code
+  override_status,                 -- Status override (boolean)
+  needs_attention,                 -- Needs attention flag (boolean)
+  
+  -- ==================== ASSIGNMENT ====================
+  assigned_to,                     -- Assigned to (user ID)
+  dv_assigned_to,                  -- Display value for assigned user
+  assignment_group,                -- Assignment group ID
+  dv_assignment_group,             -- Display value for assignment group
+  additional_assignee_list,        -- Additional assignees (IDs)
+  dv_additional_assignee_list,     -- Display value for additional assignees
+  opened_by,                       -- Who opened the story
+  dv_opened_by,                    -- Display value for opener
+  closed_by,                       -- Who closed the story
+  dv_closed_by,                    -- Display value for closer
+  group_list,                      -- List of groups
+  watch_list,                      -- Watch list
+  dv_watch_list,                   -- Display value for watch list
+  
+  -- ==================== AGILE FRAMEWORK ====================
+  agile_story,                     -- Parent agile story ID
+  dv_agile_story,                  -- Display value for parent story
+  sn_safe_sprint,                  -- SAFe sprint ID
+  dv_sn_safe_sprint,               -- Display value for sprint
+  sn_safe_program_increment,       -- Program Increment (PI) ID
+  dv_sn_safe_program_increment,    -- Display value for PI
+  sn_safe_feature,                 -- SAFe feature ID
+  dv_sn_safe_feature_number,       -- Display value for feature number
+  epic,                            -- Epic ID
+  parent_feature,                  -- Parent feature ID
+  iteration,                       -- Iteration
+  sprint,                          -- Sprint
+  sprint_index,                    -- Sprint index
+  
+  -- ==================== DATES - ACTIVITY ====================
+  opened_at,                       -- When story was opened
+  dv_opened_at,                    -- Display value for opened date
+  closed_at,                       -- When story was closed
+  dv_closed_at,                    -- Display value for closed date
+  activity_due,                    -- Activity due date
+  dv_activity_due,                 -- Display value for activity due
+  due_date,                        -- Due date
+  dv_due_date,                     -- Display value for due date
+  
+  -- ==================== DATES - SCHEDULE ====================
+  start,                           -- Start timestamp
+  dv_start,                        -- Display value for start
+  end,                             -- End timestamp
+  dv_end,                          -- Display value for end
+  start_date,                      -- Start date
+  dv_start_date,                   -- Display value for start date
+  end_date,                        -- End date
+  dv_end_date,                     -- Display value for end date
+  schedule_start_date,             -- Scheduled start date
+  dv_schedule_start_date,          -- Display value for scheduled start
+  schedule_end_date,               -- Scheduled end date
+  dv_schedule_end_date,            -- Display value for scheduled end
+  expected_start,                  -- Expected start date
+  dv_expected_start,               -- Display value for expected start
+  constraint_date,                 -- Constraint date
+  start_date_derived_from,         -- Where start date was derived from
+  end_date_derived_from,           -- Where end date was derived from
+  allow_dates_outside_schedule,    -- Allow dates outside schedule (boolean)
+  
+  -- ==================== DATES - SLA & TRACKING ====================
+  sla_due,                         -- SLA due date
+  dv_sla_due,                      -- Display value for SLA due
+  follow_up,                       -- Follow up date
+  estimated_completion_date,       -- Estimated completion date
+  
+  -- ==================== DATES - WORK TRACKING ====================
+  work_start,                      -- Work start timestamp
+  dv_work_start,                   -- Display value for work start
+  work_end,                        -- Work end timestamp
+  dv_work_end,                     -- Display value for work end
+  
+  -- ==================== STORY DETAILS ====================
+  short_description,               -- Short description
+  description,                     -- Full description
+  html_description,                -- HTML formatted description
+  acceptance_criteria,             -- Acceptance criteria
+  close_notes,                     -- Notes when closing
+  
+  -- ==================== PRIORITY & EFFORT ====================
+  priority,                        -- Priority code
+  dv_priority,                     -- Display value for priority
+  story_points,                    -- Story points estimate
+  urgency,                         -- Urgency code
+  dv_urgency,                      -- Display value for urgency
+  impact,                          -- Impact code
+  dv_impact,                       -- Display value for impact
+  escalation,                      -- Escalation level
+  dv_escalation,                   -- Display value for escalation
+  
+  -- ==================== RANKING ====================
+  rank,                            -- Overall rank
+  global_rank,                     -- Global rank
+  group_rank,                      -- Group rank
+  product_rank,                    -- Product rank
+  order,                           -- Order
+  wbs,                             -- Work Breakdown Structure
+  wbs_order,                       -- WBS order
+  
+  -- ==================== DURATION & EFFORT ====================
+  duration,                        -- Duration
+  dv_duration,                     -- Display value for duration
+  effort,                          -- Effort estimate
+  dv_effort,                       -- Display value for effort
+  work_duration,                   -- Work duration
+  dv_work_duration,                -- Display value for work duration
+  work_effort,                     -- Work effort
+  dv_work_effort,                  -- Display value for work effort
+  time_worked,                     -- Time worked
+  dv_time_worked,                  -- Display value for time worked
+  remaining_duration,              -- Remaining duration
+  remaining_effort,                -- Remaining effort
+  dv_remaining_effort,             -- Display value for remaining effort
+  business_duration,               -- Business duration
+  calendar_duration,               -- Calendar duration
+  percent_complete,                -- Percent complete
+  
+  -- ==================== COSTS & BENEFITS ====================
+  cost,                            -- Total cost
+  budget_cost,                     -- Budget cost
+  capex_cost,                      -- Capital expenditure cost
+  opex_cost,                       -- Operational expenditure cost
+  work_cost,                       -- Work cost
+  resource_allocated_cost,         -- Resource allocated cost
+  resource_planned_cost,           -- Resource planned cost
+  actual_benefits,                 -- Actual benefits
+  benefits,                        -- Expected benefits
+  
+  -- ==================== PROJECT & PRODUCT ====================
+  project,                         -- Project ID
+  dv_project,                      -- Display value for project
+  product,                         -- Product
+  theme,                           -- Theme
+  dv_theme,                        -- Display value for theme
+  release,                         -- Release
+  dv_release,                      -- Display value for release
+  project_phase,                   -- Project phase
+  dv_project_phase,                -- Display value for project phase
+  project_index,                   -- Project index
+  product_rel_index,               -- Product release index
+  release_index,                   -- Release index
+  team_index,                      -- Team index
+  
+  -- ==================== RELATIONSHIPS ====================
+  parent,                          -- Parent story ID
+  dv_parent,                       -- Display value for parent
+  task,                            -- Related task
+  original_task,                   -- Original task
+  dv_original_task,                -- Display value for original task
+  parent_work_item,                -- Parent work item
+  top_task,                        -- Top level task
+  dv_top_task,                     -- Display value for top task
+  sub_tree_root,                   -- Sub-tree root
+  defect,                          -- Related defect
+  demand,                          -- Related demand
+  dependency,                      -- Dependencies
+  enhancement,                     -- Related enhancement
+  delivery_plan,                   -- Delivery plan
+  delivery_task,                   -- Delivery task
+  split_from,                      -- Split from story
+  dv_split_from,                   -- Display value for split from
+  
+  -- ==================== TECHNICAL FIELDS ====================
+  cmdb_ci,                         -- Configuration Item
+  cmdb_ci_business_app,            -- Business application CI
+  business_service,                -- Business service
+  service_offering,                -- Service offering
+  dv_service_offering,             -- Display value for service offering
+  correlation_id,                  -- Correlation ID
+  correlation_display,             -- Correlation display
+  model_id,                        -- Model ID
+  mpp_task_id,                     -- MS Project task ID
+  orig_sys_id,                     -- Original system ID
+  orig_top_task_id,                -- Original top task ID
+  safe_record,                     -- SAFe record
+  
+  -- ==================== TEAM & RESOURCES ====================
+  team,                            -- Team
+  eap_team,                        -- EAP team
+  eap_config,                      -- EAP configuration
+  skills,                          -- Required skills
+  dv_skills,                       -- Display value for skills
+  location,                        -- Location
+  time_zone,                       -- Time zone
+  
+  -- ==================== WORKFLOW & CALCULATION ====================
+  calculation_type,                -- Calculation type
+  dv_calculation_type,             -- Display value for calculation type
+  time_constraint,                 -- Time constraint
+  dv_time_constraint,              -- Display value for time constraint
+  relation_applied,                -- Relation applied
+  phase_type,                      -- Phase type
+  dv_phase_type,                   -- Display value for phase type
+  route_reason,                    -- Route reason
+  run_calc_brs,                    -- Run calculation BRS (boolean)
+  
+  -- ==================== FLAGS & BOOLEAN ====================
+  enabler,                         -- Is enabler? (boolean)
+  milestone,                       -- Is milestone? (boolean)
+  key_milestone,                   -- Is key milestone? (boolean)
+  critical_path,                   -- Is on critical path? (boolean)
+  has_conflict,                    -- Has conflict? (boolean)
+  made_sla,                        -- Made SLA? (boolean)
+  knowledge,                       -- Knowledge flag (boolean)
+  rollup,                          -- Rollup flag (boolean)
+  shadow,                          -- Shadow flag (boolean)
+  time_card_at_top_task,           -- Time card at top task (boolean)
+  
+  -- ==================== COMMENTS & NOTES ====================
+  dv_comments,                     -- Display value for comments
+  dv_comments_and_work_notes,      -- Combined comments and work notes
+  dv_work_notes,                   -- Display value for work notes
+  work_notes_list,                 -- Work notes list
+  dv_work_notes_list,              -- Display value for work notes list
+  
+  -- ==================== CONTACT & COMPANY ====================
+  company,                         -- Company
+  contact_type,                    -- Contact type
+  dv_contact_type,                 -- Display value for contact type
+  contract,                        -- Contract
+  dv_contract,                     -- Display value for contract
+  
+  -- ==================== PORTFOLIO ====================
+  top_portfolio,                   -- Top portfolio
+  top_program,                     -- Top program
+  primary_goal,                    -- Primary goal
+  primary_target,                  -- Primary target
+  backlog_definition,              -- Backlog definition
+  
+  -- ==================== INTEGRATIONS ====================
+  sn_esign_document,               -- E-sign document
+  sn_esign_esignature_configuration, -- E-signature configuration
+  sn_hr_le_activity,               -- HR LE activity
+  universal_request,               -- Universal request
+  software_model,                  -- Software model
+  upon_approval,                   -- Upon approval action
+  dv_upon_approval,                -- Display value for upon approval
+  upon_reject,                     -- Upon reject action
+  dv_upon_reject,                  -- Display value for upon reject
+  user_input,                      -- User input
+  version,                         -- Version
+  reassignment_count,              -- Reassignment count
+  
+  -- ==================== IBM SOAR INTEGRATION ====================
+  x_ibmrt_resilient_ibm_soar_reference_id,    -- IBM SOAR reference ID
+  x_ibmrt_resilient_ibm_soar_reference_link,  -- IBM SOAR reference link
+  x_ibmrt_resilient_ibm_soar_type,            -- IBM SOAR type
+  
+  -- ==================== PETROBRAS CUSTOM FIELDS ====================
+  x_petro_itsm_api_email_model,                         -- ITSM API email model
+  x_petro_itsm_itsm_analista_antigo,                    -- Previous analyst
+  x_petro_itsm_itsm_grupo_antigo,                       -- Previous group
+  x_petro_itsm_n_o_enviado_integracao_abertura,         -- Integration opening flag
+  x_petro_itsm_n_o_enviado_integracao_reabertura,       -- Integration reopening flag
+  x_petro_itsm_n_o_enviado_integracao_troca_de_mesa,    -- Integration desk transfer flag
+  
+  -- ==================== USER CUSTOM FIELDS (u_) ====================
+  u_automated_task,                          -- Is automated task? (boolean)
+  u_change_in_code,                          -- Change in code? (boolean)
+  u_corrective_maintenance,                  -- Corrective maintenance? (boolean)
+  u_definition_of_done_dod,                  -- Definition of Done (DoD)
+  u_definition_of_ready_to_start_dor,        -- Definition of Ready (DoR)
+  u_duplicated_priority,                     -- Duplicated priority
+  dv_u_duplicated_priority,                  -- Display value for duplicated priority
+  u_journal,                                 -- Journal field 1
+  u_journal_1,                               -- Journal field 2
+  u_percent_to_cancel,                       -- Percent to cancel
+  
+  -- ==================== SYSTEM METADATA ====================
+  sys_id,                          -- System ID (unique identifier)
+  sys_created_by,                  -- Created by user
+  sys_created_on,                  -- Created on timestamp
+  sys_updated_by,                  -- Updated by user
+  sys_updated_on                   -- Updated on timestamp
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story
+WHERE active = true                -- Focus on active stories only
+ORDER BY number DESC               -- Most recent stories first
+LIMIT 100;
+
+-- =====================================================
+-- RELATED TABLES (Frequently Joined):
+-- =====================================================
+-- 1. dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint
+--    - Join on: sn_safe_sprint = sys_id
+--    - Purpose: Get sprint details, dates, and status
+--
+-- 2. dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective
+--    - Join on: sn_safe_program_increment = program_increment
+--    - Purpose: Get PI objectives and goals
+-- =====================================================
+
+
+
+NOVA TABELA
+
+-- =====================================================
+-- SAFe Program Sprint Analysis - Complete View (All 183 Columns)
+-- =====================================================
+-- Related Tables (Frequent Joins):
+--   - dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint
+--   - dt0016_prd.servicenow_gdtec.vw_sn_safe_program_increment
+-- =====================================================
+
+SELECT 
+  -- ==================== SPRINT IDENTIFICATION ====================
+  number,                          -- Sprint number
+  state,                           -- State code
+  dv_state,                        -- Display value for state
+  status,                          -- Status code
+  dv_status,                       -- Display value for status
+  active,                          -- Is sprint active? (boolean)
+  visited_state,                   -- Visited state
+  
+  -- ==================== SPRINT DETAILS ====================
+  short_description,               -- Short description
+  description,                     -- Full description
+  html_description,                -- HTML formatted description
+  dv_html_description,             -- Display value for HTML description
+  release_type,                    -- Release type (iteration, sprint, etc)
+  milestone,                       -- Is milestone? (boolean)
+  key_milestone,                   -- Is key milestone? (boolean)
+  
+  -- ==================== AGILE FRAMEWORK - SAFe ====================
+  sn_safe_program_increment,       -- Program Increment (PI) ID
+  dv_sn_safe_program_increment,    -- Display value for PI
+  agile_story,                     -- Parent agile story
+  iteration,                       -- Iteration
+  release,                         -- Release
+  release_phase,                   -- Release phase
+  release_team,                    -- Release team
+  top_program,                     -- Top program
+  top_portfolio,                   -- Top portfolio
+  
+  -- ==================== DATES - SPRINT SCHEDULE ====================
+  start,                           -- Start date
+  start_date,                      -- Start timestamp
+  dv_start_date,                   -- Display value for start date
+  end,                             -- End date
+  end_date,                        -- End timestamp
+  dv_end_date,                     -- Display value for end date
+  schedule_start_date,             -- Scheduled start date
+  dv_schedule_start_date,          -- Display value for scheduled start
+  schedule_end_date,               -- Scheduled end date
+  dv_schedule_end_date,            -- Display value for scheduled end
+  start_date_derived_from,         -- Where start date was derived from
+  end_date_derived_from,           -- Where end date was derived from
+  allow_dates_outside_schedule,    -- Allow dates outside schedule (boolean)
+  
+  -- ==================== DATES - ACTIVITY ====================
+  opened_at,                       -- When sprint was opened
+  dv_opened_at,                    -- Display value for opened date
+  closed_at,                       -- When sprint was closed
+  dv_closed_at,                    -- Display value for closed date
+  activity_due,                    -- Activity due date
+  dv_activity_due,                 -- Display value for activity due
+  due_date,                        -- Due date
+  dv_due_date,                     -- Display value for due date
+  expected_start,                  -- Expected start date
+  estimated_completion_date,       -- Estimated completion date
+  constraint_date,                 -- Constraint date
+  dv_constraint_date,              -- Display value for constraint date
+  
+  -- ==================== DATES - SLA & TRACKING ====================
+  sla_due,                         -- SLA due date
+  dv_sla_due,                      -- Display value for SLA due
+  follow_up,                       -- Follow up date
+  approval_set,                    -- When approval was set
+  
+  -- ==================== DATES - WORK TRACKING ====================
+  work_start,                      -- Work start timestamp
+  work_end,                        -- Work end timestamp
+  
+  -- ==================== STORY POINTS & EFFORT ====================
+  story_points,                    -- Total story points in sprint
+  dv_story_points,                 -- Display value for story points
+  committed_points,                -- Committed points for sprint
+  actual_points,                   -- Actual points completed
+  points,                          -- Points field
+  team_points,                     -- Team points
+  
+  -- ==================== DURATION & EFFORT ====================
+  duration,                        -- Duration
+  dv_duration,                     -- Display value for duration
+  effort,                          -- Effort estimate
+  work_duration,                   -- Work duration
+  work_effort,                     -- Work effort
+  time_worked,                     -- Time worked
+  remaining_duration,              -- Remaining duration
+  remaining_effort,                -- Remaining effort
+  business_duration,               -- Business duration
+  dv_business_duration,            -- Display value for business duration
+  calendar_duration,               -- Calendar duration
+  dv_calendar_duration,            -- Display value for calendar duration
+  percent_complete,                -- Percent complete
+  
+  -- ==================== COSTS & BUDGET ====================
+  cost,                            -- Total cost
+  budget_cost,                     -- Budget cost
+  capex_cost,                      -- Capital expenditure cost
+  opex_cost,                       -- Operational expenditure cost
+  work_cost,                       -- Work cost
+  resource_allocated_cost,         -- Resource allocated cost
+  resource_planned_cost,           -- Resource planned cost
+  actual_benefits,                 -- Actual benefits
+  benefits,                        -- Expected benefits
+  
+  -- ==================== ASSIGNMENT ====================
+  assigned_to,                     -- Assigned to (user ID)
+  assignment_group,                -- Assignment group ID
+  additional_assignee_list,        -- Additional assignees
+  opened_by,                       -- Who opened the sprint
+  dv_opened_by,                    -- Display value for opener
+  closed_by,                       -- Who closed the sprint
+  dv_closed_by,                    -- Display value for closer
+  group_list,                      -- List of groups
+  watch_list,                      -- Watch list
+  
+  -- ==================== STATUS & APPROVAL ====================
+  approval,                        -- Approval status code
+  dv_approval,                     -- Display value for approval
+  approval_history,                -- History of approvals
+  action_status,                   -- Action status code
+  override_status,                 -- Status override (boolean)
+  needs_attention,                 -- Needs attention flag (boolean)
+  has_conflict,                    -- Has conflict? (boolean)
+  made_sla,                        -- Made SLA? (boolean)
+  
+  -- ==================== PRIORITY & IMPACT ====================
+  priority,                        -- Priority code
+  dv_priority,                     -- Display value for priority
+  urgency,                         -- Urgency code
+  impact,                          -- Impact code
+  dv_impact,                       -- Display value for impact
+  escalation,                      -- Escalation level
+  dv_escalation,                   -- Display value for escalation
+  
+  -- ==================== RELATIONSHIPS ====================
+  parent,                          -- Parent sprint
+  task,                            -- Related task
+  top_task,                        -- Top level task
+  dv_top_task,                     -- Display value for top task
+  sub_tree_root,                   -- Sub-tree root
+  dv_sub_tree_root,                -- Display value for sub-tree root
+  delivery_plan,                   -- Delivery plan
+  delivery_task,                   -- Delivery task
+  dependency,                      -- Dependencies
+  
+  -- ==================== WORKFLOW & CALCULATION ====================
+  calculation_type,                -- Calculation type
+  dv_calculation_type,             -- Display value for calculation type
+  time_constraint,                 -- Time constraint
+  dv_time_constraint,              -- Display value for time constraint
+  relation_applied,                -- Relation applied
+  phase_type,                      -- Phase type
+  dv_phase_type,                   -- Display value for phase type
+  route_reason,                    -- Route reason
+  run_calc_brs,                    -- Run calculation BRS (boolean)
+  dv_run_calc_brs,                 -- Display value for run calc BRS
+  
+  -- ==================== TECHNICAL FIELDS ====================
+  cmdb_ci,                         -- Configuration Item
+  cmdb_ci_business_app,            -- Business application CI
+  business_service,                -- Business service
+  service_offering,                -- Service offering
+  correlation_id,                  -- Correlation ID
+  correlation_display,             -- Correlation display
+  model_id,                        -- Model ID
+  mpp_task_id,                     -- MS Project task ID
+  orig_sys_id,                     -- Original system ID
+  orig_top_task_id,                -- Original top task ID
+  task_effective_number,           -- Task effective number
+  
+  -- ==================== FLAGS & BOOLEAN ====================
+  critical_path,                   -- Is on critical path? (boolean)
+  knowledge,                       -- Knowledge flag (boolean)
+  rollup,                          -- Rollup flag (boolean)
+  shadow,                          -- Shadow flag (boolean)
+  time_card_at_top_task,           -- Time card at top task (boolean)
+  
+  -- ==================== COMMENTS & NOTES ====================
+  dv_comments,                     -- Display value for comments
+  dv_comments_and_work_notes,      -- Combined comments and work notes
+  dv_close_notes,                  -- Display value for close notes
+  dv_work_notes,                   -- Display value for work notes
+  work_notes_list,                 -- Work notes list
+  
+  -- ==================== CONTACT & COMPANY ====================
+  company,                         -- Company
+  contact_type,                    -- Contact type
+  contract,                        -- Contract
+  location,                        -- Location
+  time_zone,                       -- Time zone
+  
+  -- ==================== RESOURCES & SKILLS ====================
+  skills,                          -- Required skills
+  level,                           -- Level
+  
+  -- ==================== RANKING & ORDER ====================
+  order,                           -- Order
+  wbs,                             -- Work Breakdown Structure
+  wbs_order,                       -- WBS order
+  reassignment_count,              -- Reassignment count
+  
+  -- ==================== INTEGRATIONS ====================
+  sn_esign_document,               -- E-sign document
+  sn_esign_esignature_configuration, -- E-signature configuration
+  sn_hr_le_activity,               -- HR LE activity
+  universal_request,               -- Universal request
+  software_model,                  -- Software model
+  upon_approval,                   -- Upon approval action
+  dv_upon_approval,                -- Display value for upon approval
+  upon_reject,                     -- Upon reject action
+  dv_upon_reject,                  -- Display value for upon reject
+  user_input,                      -- User input
+  version,                         -- Version
+  
+  -- ==================== IBM SOAR INTEGRATION ====================
+  x_ibmrt_resilient_ibm_soar_reference_id,    -- IBM SOAR reference ID
+  x_ibmrt_resilient_ibm_soar_reference_link,  -- IBM SOAR reference link
+  x_ibmrt_resilient_ibm_soar_type,            -- IBM SOAR type
+  
+  -- ==================== PETROBRAS CUSTOM FIELDS ====================
+  x_petro_itsm_api_email_model,                         -- ITSM API email model
+  x_petro_itsm_itsm_analista_antigo,                    -- Previous analyst
+  x_petro_itsm_itsm_grupo_antigo,                       -- Previous group
+  x_petro_itsm_n_o_enviado_integracao_abertura,         -- Integration opening flag
+  x_petro_itsm_n_o_enviado_integracao_reabertura,       -- Integration reopening flag
+  x_petro_itsm_n_o_enviado_integracao_troca_de_mesa,    -- Integration desk transfer flag
+  
+  -- ==================== USER CUSTOM FIELD ====================
+  u_automated_task,                -- Is automated task? (boolean)
+  
+  -- ==================== SYSTEM METADATA ====================
+  sys_id,                          -- System ID (unique identifier)
+  sys_created_by,                  -- Created by user
+  sys_created_on,                  -- Created on timestamp
+  sys_updated_by,                  -- Updated by user
+  sys_updated_on                   -- Updated on timestamp
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_program_sprint
+WHERE active = true                -- Focus on active sprints only
+ORDER BY start DESC                -- Most recent sprints first
+LIMIT 100;
+
+-- =====================================================
+-- RELATED TABLES & JOIN MAPPING:
+-- =====================================================
+-- 
+-- 1. dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint
+--    - Join on: sys_id = vw_sn_safe_sprint.sn_safe_program_sprint
+--    - Purpose: Get detailed sprint information (individual sprint data)
+--    - Common columns to join:
+--      * vw_sn_safe_program_sprint.sys_id
+--      * vw_sn_safe_sprint.sn_safe_program_sprint
+--
+-- 2. dt0016_prd.servicenow_gdtec.vw_sn_safe_program_increment
+--    - Join on: sn_safe_program_increment = vw_sn_safe_program_increment.sys_id
+--    - Purpose: Get Program Increment (PI) details, goals, and objectives
+--    - Common columns to join:
+--      * vw_sn_safe_program_sprint.sn_safe_program_increment
+--      * vw_sn_safe_program_increment.sys_id
+--
+-- 3. dt0016_prd.servicenow_gdtec.vw_sn_safe_story
+--    - Join on: sys_id = vw_sn_safe_story.sn_safe_sprint
+--    - Purpose: Get stories associated with this sprint
+--    - Common columns to join:
+--      * vw_sn_safe_program_sprint.sys_id
+--      * vw_sn_safe_story.sn_safe_sprint
+-- 
+-- Example JOIN Query:
+-- SELECT 
+--   ps.number AS sprint_number,
+--   ps.dv_sn_safe_program_increment AS program_increment,
+--   ps.committed_points,
+--   ps.actual_points,
+--   s.number AS story_number,
+--   s.short_description AS story_description
+-- FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_program_sprint ps
+-- LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+--   ON ps.sys_id = s.sn_safe_sprint
+-- WHERE ps.active = true
+-- ORDER BY ps.start DESC;
+-- =====================================================
+
+
+
+
+NOVA TABELA
+
+select
+  -- Identificação e status
+  number,
+  active,
+  approval,
+  approval_set,
+  closed_at,
+  closed_by,
+  dv_approval,
+  dv_closed_by,
+  dv_state,
+  dv_status,
+  override_status,
+  state,
+  status,
+  sys_class_name,
+  sys_domain,
+  sys_domain_path,
+  sys_mod_count,
+  sys_tags,
+  sys_id,
+  sys_created_by,
+  sys_created_on,
+
+  -- Datas e duração
+  opened_at,
+  due_date,
+  end,
+  end_date,
+  schedule_end_date,
+  dv_schedule_end_date,
+  schedule_start_date,
+  dv_schedule_start_date,
+  sla_due,
+  start,
+  dv_start,
+  start_date,
+  business_duration,
+  calendar_duration,
+  duration,
+
+  -- Descrição e comentários
+  comments,
+  comments_and_work_notes,
+  description,
+  dv_description,
+  short_description,
+
+  -- Atribuição e grupos
+  assigned_to,
+  assignment_group,
+  dv_opened_by,
+  dv_phase_type,
+  dv_priority,
+  dv_sn_safe_program,
+  dv_sprint_length,
+  dv_top_task,
+  location,
+  top_task,
+  task,
+  task_effective_number,
+
+  -- Valores e custos
+  actual_benefits,
+  benefits,
+  budget_cost,
+  business_value_achieved,
+  capex_cost,
+  cost,
+  opex_cost,
+  percent_complete,
+  pi_capacity,
+  priority,
+  resource_allocated_cost,
+  resource_planned_cost,
+  total_actual_business_value,
+  total_planned_business_value,
+  work_cost,
+
+  -- Planejamento e controle
+  allow_dates_outside_schedule,
+  calculation_type,
+  critical_path,
+  escalation,
+  has_conflict,
+  impact,
+  key_milestone,
+  knowledge,
+  level,
+  made_sla,
+  milestone,
+  needs_attention,
+  number_of_sprints,
+  phase_type,
+  reassignment_count,
+  rollup,
+  run_calc_brs,
+  shadow,
+  sprint_length,
+  time_card_at_top_task,
+  time_constraint,
+  u_automated_task,
+  upon_approval,
+  upon_reject,
+  urgency,
+  version,
+
+  -- Colunas derivadas e display values
+  dv_duration,
+  dv_escalation,
+  dv_impact
+
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_program_increment
+limit 100
+
+-- Mapeamento de relacionamentos frequentes:
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint: relacionado via coluna sn_safe_program
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_program_sprint: relacionado via coluna sn_safe_program
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_story: relacionado via coluna sn_safe_program
+-- dt0016_prd.servicenow_gdtec.vw_gdtec_tsp3_program: relacionado via coluna sn_safe_program
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group: relacionado via coluna sys_id
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_epic: relacionado via coluna sn_safe_program
+
+
+
+NOVA TABELA
+
+
+
+select
+  -- Identificação do Grupo de Atribuição
+  assignment_group,
+  dv_assignment_group,
+
+  -- Valores de Negócio
+  business_value_achieved,
+  total_actual_business_value,
+  total_planned_business_value,
+
+  -- Incremento do Programa SAFE
+  sn_safe_program_increment,
+  dv_sn_safe_program_increment,
+
+  -- Metadados do Registro
+  sys_id,
+  sys_created_by,
+  sys_created_on,
+  sys_updated_by,
+  sys_updated_on
+
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group
+limit 100;
+
+/*
+Mapeamento de relacionamentos frequentemente utilizados:
+- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group.assignment_group
+    <-> dt0016_prd.servicenow_gdtec.vw_gdtec_tsp3_program.assignment_group
+- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group.sn_safe_program_increment
+    <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_program_increment.sys_id
+- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group.sys_id
+    <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint.sys_id
+- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group.sn_safe_program_increment
+    <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_program_sprint.sn_safe_program_increment
+*/
+
+
+select
+  -- Identificação
+  number,
+  sys_id,
+
+  -- Valores de Negócio
+  actual_business_value,
+  planned_business_value,
+
+  -- Grupos de Atribuição
+  assignment_group,
+  dv_assignment_group,
+
+  -- Comprometimento
+  committed,
+  dv_committed,
+
+  -- Descrições
+  description,
+  short_description,
+  work_notes,
+  dv_work_notes,
+
+  -- Programas SAFE
+  sn_safe_program,
+  dv_sn_safe_program,
+  sn_safe_program_increment,
+  dv_sn_safe_program_increment,
+
+  -- Tipos
+  type,
+  dv_type,
+  u_type,
+  dv_u_type,
+
+  -- Status do Objetivo
+  u_objective_status,
+  dv_u_objective_status,
+
+  -- Metadados de Sistema
+  sys_created_by,
+  sys_created_on,
+  sys_updated_by,
+  sys_updated_on,
+  dv_sys_updated_on
+
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective
+limit 100
+
+-- Mapeamento de relacionamentos frequentes:
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective.number <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_story.sn_safe_pi_objective
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective.sn_safe_program <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_program.sys_id
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective.sn_safe_program_increment <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint.sn_safe_program_increment
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective.number <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_feature.sn_safe_pi_objective
+
+
+NOVA TABELA
+
+select
+    -- Identificação e Status
+    number,
+    action_status,
+    active,
+    approval,
+    approval_history,
+    approval_set,
+    approval,
+    dv_approval,
+    dv_status,
+    dv_state,
+    dv_sys_class_name,
+    dv_upon_approval,
+    needs_attention,
+    escalation,
+    dv_escalation,
+    made_sla,
+    missing_estimates,
+    key_milestone,
+    milestone,
+    critical_path,
+    has_conflict,
+    enabler,
+    knowledge,
+    -- Datas e Duração
+    activity_due,
+    business_duration,
+    calendar_duration,
+    closed_at,
+    constraint_date,
+    due_date,
+    duration,
+    effort,
+    end,
+    end_date,
+    estimated_completion_date,
+    expected_start,
+    follow_up,
+    opened_at,
+    -- Custos e Benefícios
+    actual_benefits,
+    benefits,
+    budget_cost,
+    capex_cost,
+    cost,
+    opex_cost,
+    -- Atribuição e Grupos
+    assigned_to,
+    assignment_group,
+    additional_assignee_list,
+    dv_assigned_to,
+    dv_assignment_group,
+    dv_additional_assignee_list,
+    group_list,
+    -- Descrição e Comentários
+    description,
+    comments,
+    comments_and_work_notes,
+    close_notes,
+    html_description,
+    dv_comments,
+    dv_comments_and_work_notes,
+    -- Relacionamentos e Referências
+    agile_story,
+    business_service,
+    cmdb_ci,
+    cmdb_ci_business_app,
+    company,
+    contract,
+    correlation_display,
+    correlation_id,
+    delivery_plan,
+    delivery_task,
+    demand,
+    dependency,
+    delivery_plan,
+    model_id,
+    mpp_task_id,
+    opened_by,
+    orig_sys_id,
+    orig_top_task_id,
+    -- Outros Campos
+    allow_dates_outside_schedule,
+    calculation_type,
+    color,
+    completed_count,
+    completed_estimate,
+    dv_closed_by,
+    dv_color,
+    dv_phase_type,
+    dv_priority,
+    dv_route_reason,
+    dv_sn_safe_epic,
+    dv_sn_safe_program,
+    dv_sn_safe_program_increment,
+    dv_time_constraint,
+    dv_top_task,
+    dv_work_duration,
+    end_date_derived_from,
+    global_rank,
+    impact,
+    dv_impact,
+    job_size,
+    level,
+    location,
+    order,
+    -- Campos de SLA e acompanhamento
+    completed_count,
+    completed_estimate,
+    business_duration,
+    calendar_duration,
+    -- Outros
+    key_milestone,
+    needs_attention,
+    -- Campos booleanos
+    allow_dates_outside_schedule,
+    active,
+    enabler,
+    has_conflict,
+    key_milestone,
+    knowledge,
+    made_sla,
+    milestone,
+    missing_estimates,
+    needs_attention,
+    -- Finais
+    *
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_feature
+limit 100
+-- 
+-- Mapeamento de relacionamentos frequentes:
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_story         ON vw_sn_safe_feature.number = vw_sn_safe_story.feature
+-- dt0000_prd.itsm.cmdb_ci_business_app                 ON vw_sn_safe_feature.cmdb_ci_business_app = cmdb_ci_business_app.sys_id
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective  ON vw_sn_safe_feature.number = vw_sn_safe_pi_objective.feature
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_risk          ON vw_sn_safe_feature.number = vw_sn_safe_risk.feature
+-- dt0016_prd.servicenow_gdtec.vw_contract_complement_answers ON vw_sn_safe_feature.contract = vw_contract_complement_answers.contract
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_epic          ON vw_sn_safe_feature.dv_sn_safe_epic = vw_sn_safe_epic.sys_id
+
+
+NOVA TABELA
+
+
+select
+  -- Identificação
+  number,
+  -- Status e Atividade
+  action_status,
+  active,
+  activity_due,
+  -- Atribuição
+  additional_assignee_list,
+  assigned_to,
+  assignment_group,
+  -- Aprovação
+  approval,
+  approval_history,
+  approval_set,
+  -- Duração e Datas
+  business_duration,
+  calendar_duration,
+  closed_at,
+  due_date,
+  -- Notas e Comentários
+  close_notes,
+  comments,
+  comments_and_work_notes,
+  -- Negócio e Serviço
+  business_service,
+  company,
+  contract,
+  -- Correlação e Entrega
+  correlation_display,
+  correlation_id,
+  delivery_plan,
+  delivery_task,
+  -- Descrição
+  description,
+  -- Configuração e Aplicação
+  cmdb_ci,
+  cmdb_ci_business_app,
+  -- Colunas Derivadas (dv_)
+  dv_action_status,
+  dv_active,
+  dv_activity_due,
+  dv_additional_assignee_list,
+  dv_agile_story,
+  dv_approval,
+  dv_approval_history,
+  dv_approval_set,
+  dv_assigned_to,
+  dv_assignment_group,
+  dv_business_duration,
+  dv_business_service,
+  dv_calendar_duration,
+  dv_close_notes,
+  dv_closed_at,
+  dv_closed_by,
+  dv_cmdb_ci,
+  dv_cmdb_ci_business_app,
+  dv_comments,
+  dv_comments_and_work_notes,
+  dv_company,
+  dv_contact_type,
+  dv_contract,
+  dv_correlation_display,
+  dv_correlation_id,
+  dv_delivery_plan,
+  dv_delivery_task,
+  dv_description,
+  dv_due_date,
+  dv_escalation,
+  dv_expected_start,
+  dv_follow_up,
+  dv_group_list,
+  dv_impact,
+  dv_knowledge,
+  dv_location,
+  dv_made_sla,
+  dv_needs_attention,
+  dv_number,
+  dv_opened_at,
+  dv_opened_by,
+  dv_order,
+  dv_parent,
+  dv_priority,
+  dv_reassignment_count,
+  dv_route_reason,
+  dv_service_offering,
+  dv_short_description,
+  dv_skills,
+  dv_sla_due,
+  dv_sn_esign_document,
+  dv_sn_esign_esignature_configuration,
+  dv_sn_hr_le_activity,
+  dv_state,
+  dv_sys_class_name,
+  dv_sys_created_by,
+  dv_sys_created_on,
+  dv_sys_domain,
+  dv_sys_domain_path,
+  dv_sys_id,
+  dv_sys_mod_count,
+  dv_sys_tags,
+  dv_sys_updated_by,
+  dv_sys_updated_on,
+  dv_task_effective_number,
+  dv_time_worked,
+  dv_u_automated_task,
+  dv_u_estimated_cost,
+  dv_u_mitigation_plan,
+  dv_u_probability
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_risk
+limit 100
+
+-- 
+-- Mapeamento de relacionamentos frequentes:
+-- 
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_risk.number
+--   <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_m2m_feature_risk.risk
+-- dt0016_prd.servicenow_gdtec.vw_sn_safe_risk.number
+--   <-> dt0016_prd.servicenow_gdtec.vw_sn_safe_feature.risk
+
+NOVA TABELA
+
+
+select
+  -- Identificadores principais
+  u_number,
+  sys_id,
+
+  -- Informações de Feature
+  u_safe_feature,
+  dv_u_safe_feature,
+
+  -- Informações de Risco
+  u_safe_risk,
+  dv_u_safe_risk,
+
+  -- Auditoria
+  sys_created_by,
+  sys_created_on,
+  sys_updated_by,
+  sys_updated_on
+
+from dt0016_prd.servicenow_gdtec.vw_sn_safe_m2m_feature_risk
+limit 100
+
+-- 
+-- Mapeamento de tabelas e colunas utilizadas nos relacionamentos:
+-- Tabela: dt0016_prd.servicenow_gdtec.vw_sn_safe_m2m_feature_risk
+--   - u_safe_feature: chave para feature
+--   - u_safe_risk: chave para risco
+--   - sys_id: identificador único do relacionamento
+
+
+
+
