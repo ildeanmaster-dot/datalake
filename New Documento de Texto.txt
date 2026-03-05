@@ -1,1 +1,1518 @@
 
+
+table Medidas
+	lineageTag: 6899ce45-84b9-4c46-b624-b4a653899025
+
+	measure Iniciar =
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    fStory[Status] = "Iniciar")+0
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 0f36c934-ad96-4d9c-90af-c9354105d222
+
+	measure Cancelada =
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    //fStory[Status] = "Cancelada"
+			    fStory[Status] = "Cancelled"
+			    )+0
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 46deffc0-83c9-4e7b-ad4f-45e8af97ba58
+
+	measure Concluido =
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    //fStory[Status] = "Concluído"
+			    fStory[Status] = "Complete"
+			    )+0
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 69580280-9a8a-4363-a5f0-6241a58d296b
+
+	measure 'Em Homologacao' =
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    fStory[Status] = "Em Homologação")+0
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 45a11dc1-2f7c-4d72-9e4c-d94625a5fc94
+
+	/// Métricas dos Estados dos Cards.
+	measure Andamento = ```
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    fStory[Status] = "Em Andamento"
+			    
+			    )+0
+			```
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 9ca9afc3-3cdc-438c-a404-95652a80bce0
+
+	measure 'Qtde Item' = ```
+			COUNT(fStory[Numero Historia])
+			
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: d1db5125-5cdd-4887-899d-2f0e5c78c287
+
+	measure '% Sprint' =
+			
+			DIVIDE(
+			    CALCULATE([Qtde Story],
+			    //fStory[Status] = "Concluído"
+			    fStory[Status] = "Complete"
+			        //fStory[Status(state)] in {"Concluído", "Validando", "Trabalho em andamento", "Em Homologação", "Testando"}
+			    ), [Qtde Story]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: Status de Histórias
+		lineageTag: 94db05e9-34aa-4398-99ae-503c1f9f184b
+
+	measure 'Story Points' = ```
+			
+			
+			SUM(fStory[Story Points])
+			
+			/*
+			
+			Story Points = 
+			
+			SUM(fSprint_program[Pontos])
+			
+			*/
+			
+			```
+		formatString: #,0
+		displayFolder: Frequência
+		lineageTag: a5d4e1dc-742a-4795-8265-4a9867711b16
+
+	measure 'Qtde Story' = ```
+			
+			COUNT(fStory[Numero Historia])
+			
+			/*
+			DISTINCTCOUNT(fStory[Numero Historia])
+			
+			*/
+			       
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: fac4af37-22f1-407d-896e-9140042f60d0
+
+	measure 'Qtde Teams' =
+			
+			
+			VAR vTimes = VALUES( dTeam[Equipe do Safe])
+			RETURN
+			SUMX(
+			    vTimes,
+			    VAR vPrev = [Total Pontos Previsto]     -- usa Status <> "Cancelada"
+			    VAR vConc = [Total Pontos concluidos]    -- usa Status = "Concluído"
+			    RETURN IF( COALESCE( vPrev, 0 ) = 0 && COALESCE( vConc, 0 ) = 0, 0, 1 )
+			)
+			
+			
+			
+			/*
+			Qtde Teams = DISTINCTCOUNT(fStory[Equipe do Safe])
+			
+			*/
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: f9c558d1-3b32-436d-87fd-63d5bb3d25fd
+
+	measure 'Dias restantes da PI' =
+			
+			DATEDIFF(
+			    DATE(YEAR(TODAY()), MONTH(TODAY()), DAY(TODAY())
+			    ), DATE(2025,8,8), DAY)
+		formatString: 0
+		displayFolder: Outras medidas
+		lineageTag: e284cd24-c514-4380-a630-336b65a18def
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Qtde Riscos' = ```
+			
+			VAR vFeatures =
+			    VALUES( dFeature[feature_id] )
+			VAR vRiscosDoContexto =
+			    CALCULATETABLE(
+			        VALUES( 'Feature_Risk'[fk_risco_id] ),
+			        TREATAS( vFeatures, 'Feature_Risk'[fk_feature_id] )
+			    )
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT( dRisco[risco_id] ),
+			    TREATAS( vRiscosDoContexto, dRisco[risco_id] )
+			)+0
+			  
+			
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 8fbcf677-9a5b-4820-8482-c23319b16d65
+
+	measure Validando =
+			
+			CALCULATE(
+			    COUNTROWS(fStory),
+			    //fStory[Status] = "Validando"
+			    fStory[Status] = "Validating"
+			    )+0
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 4cf92c26-fc4b-4534-9fbf-02f966ed2f5a
+
+	measure 'Data Modificação' =
+			"28/11/2025"
+			//"27/06/2025"
+		displayFolder: Outras medidas
+		lineageTag: dce62670-4c2e-482e-a068-9040bfc4181a
+
+	measure Trem =
+			
+			SELECTEDVALUE(dPI[Trem])
+		displayFolder: Outras medidas
+		lineageTag: 5010c633-32ba-4619-86f6-1cbb72a3b01e
+
+	measure 'Qtd Feature' = CALCULATE(COUNT(dFeature[Numero Feature]))+0
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: d35edc9c-d9d4-4bbe-9e81-cb3de9120ea4
+
+	measure '% Concluido' = ```
+			
+			
+			VAR vPrev = [Total Pontos Previsto]
+			VAR vConc = [Total Pontos concluidos]
+			RETURN
+			DIVIDE( vConc, vPrev,0)
+			
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Status de Histórias
+		lineageTag: 751cb83a-f4ca-4eb8-a42f-eff4677f62c6
+
+	measure 'Valor Trem' = SELECTEDVALUE(dFeature[Agile Release Train])
+		displayFolder: Outras medidas
+		lineageTag: 8587ea9a-f440-40ca-92d8-210c0c44d584
+
+	measure 'Business Value' = ```
+			
+			
+			SUM(dObjetivo[Valor Comercial Planejado])
+			
+			```
+		formatString: 0
+		displayFolder: Outras medidas
+		lineageTag: f2ecdfad-43c1-4a2d-ad4d-65dea62e0577
+
+	measure 'Status Visível' = ```
+			
+			VAR vPI   = VALUES( dPI[dpi_id] )
+			VAR vTeam = VALUES( dTeam[Equipe do Safe] )
+			
+			-- status no nível de História, respeitando PI e Equipe
+			VAR stStory =
+			    CALCULATE(
+			        SELECTEDVALUE( fStory[Status_BR] ),
+			        KEEPFILTERS( vPI ),
+			        KEEPFILTERS( vTeam )
+			    )
+			
+			-- status no nível de Feature, respeitando PI e Equipe (usa atributo de equipe da Feature)
+			VAR stFeature =
+			    CALCULATE(
+			        SELECTEDVALUE( dFeature[Status BR] ),
+			        KEEPFILTERS( vPI ),
+			        TREATAS( vTeam, dFeature[Equipe do SAFe] )
+			    )
+			
+			-- status no nível de Objetivo, respeitando PI e Equipe
+			-- (se dObjetivo não tiver coluna de equipe, veja observação abaixo)
+			VAR stObjetivo =
+			    CALCULATE(
+			        SELECTEDVALUE( dObjetivo[Status BR] ),
+			        KEEPFILTERS( vPI ),
+			        TREATAS( vTeam, dObjetivo[Equipe do SAFe] )   -- ajuste o nome da coluna de equipe em dObjetivo, se diferente
+			    )
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE( fStory[N+Story] ),       stStory,
+			    ISINSCOPE( dFeature[N+Feature] ),   stFeature,
+			    ISINSCOPE( dObjetivo[N+Objetivo] ), stObjetivo,
+			    BLANK()
+			)
+			
+			
+			
+			/*
+			
+			Status Visível = 
+			VAR vPI   = VALUES( dPI[dpi_id] )
+			VAR vTeam = VALUES( dTeam[Equipe do Safe] )
+			
+			-- status no nível de História, respeitando PI e Equipe
+			VAR stStory =
+			    CALCULATE(
+			        SELECTEDVALUE( fStory[Status_BR] ),
+			        KEEPFILTERS( vPI ),
+			        KEEPFILTERS( vTeam )
+			    )
+			
+			-- status no nível de Feature, respeitando PI e Equipe (usa atributo de equipe da Feature)
+			VAR stFeature =
+			    CALCULATE(
+			        SELECTEDVALUE( dFeature[Status] ),
+			        KEEPFILTERS( vPI ),
+			        TREATAS( vTeam, dFeature[assignment_group] )
+			    )
+			
+			-- status no nível de Objetivo, respeitando PI e Equipe
+			-- (se dObjetivo não tiver coluna de equipe, veja observação abaixo)
+			VAR stObjetivo =
+			    CALCULATE(
+			        SELECTEDVALUE( dObjetivo[Status] ),
+			        KEEPFILTERS( vPI ),
+			        TREATAS( vTeam, dObjetivo[Equipe do SAFe] )   -- ajuste o nome da coluna de equipe em dObjetivo, se diferente
+			    )
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE( fStory[N+Story] ),       stStory,
+			    ISINSCOPE( dFeature[N+Feature] ),   stFeature,
+			    ISINSCOPE( dObjetivo[N+Objetivo] ), stObjetivo,
+			    BLANK()
+			)
+			
+			
+			*/
+			```
+		displayFolder: Regras/ Estrutura
+		lineageTag: b6c12d90-7bd9-4129-b13c-6c898c981572
+
+	measure 'Business Value Visivel' =
+			
+			
+			VAR vPI   = VALUES( dPI[dpi_id] )
+			VAR vTeam = VALUES( dTeam[Equipe do Safe] )
+			VAR bvCtx =
+			    CALCULATE(
+			        SUM( dObjetivo[Valor Comercial Planejado] ),
+			        KEEPFILTERS( vPI ),
+			        TREATAS( vTeam, dObjetivo[Equipe do SAFe] )    -- ajuste o nome se for diferente
+			    )
+			RETURN
+			IF(
+			    ISINSCOPE( dObjetivo[N+Objetivo] )
+			        && NOT( ISINSCOPE( dFeature[N+Feature] ) )
+			        && NOT( ISINSCOPE( fStory[N+Story] ) ),
+			    bvCtx,
+			    BLANK()
+			)
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: d92bfc79-2a62-47e1-ba97-1de8ecec1f64
+
+	measure 'Itens Story Visivel' = ```
+			
+			IF(
+			    NOT(ISINSCOPE(fStory[N+Story])),
+			    [Qtde Item],
+			    //LASTNONBLANK(fStory[Status],1),
+			    BLANK()
+			)
+			
+			
+			/*
+			Itens Story Visivel = 
+			IF(
+			    NOT(ISINSCOPE(fStory[N+Story])),
+			    [Qtde Item],
+			    //LASTNONBLANK(fStory[Status],1),
+			    BLANK()
+			)
+			*/
+			```
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: 01c71edd-0fd3-4726-b07c-567c296ee295
+
+	measure '% Concluido Visivel' = ```
+			
+			
+			VAR vPonto = SELECTEDVALUE(fStory[Story Points])
+			VAR vStatus = SELECTEDVALUE(fStory[Status_EN])
+			VAR vPorcentagem = [% Concluido]
+			
+			RETURN
+			IF(
+			    //vPonto = 0 && vStatus = "Concluído", 1, vPorcentagem
+			    vPonto = 0 && vStatus = "Complete", 1, vPorcentagem
+			    //IF(vPorcentagem = BLANK(), 0, vPorcentagem)
+			)
+			
+			/*VAR vPonto = SELECTEDVALUE(fStory[Story Points])
+			VAR vStatus = SELECTEDVALUE(fStory[Status(state)])
+			VAR vPorcentagem = [% Concluido]
+			
+			VAR vResultado = 
+			    IF(
+			        vPonto = 0 && vStatus = "Concluído",
+			        1,
+			        vPorcentagem
+			    )
+			
+			RETURN
+			IF(
+			    ISBLANK(vResultado),
+			    0,
+			    vResultado
+			)*/
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 330bfe43-3985-4033-9763-8f50479f3993
+
+	measure CorStatus = ```
+			
+			
+			IF(
+			    ISINSCOPE( fStory[N+Story] ),
+			    // Story
+			    SWITCH(
+			        SELECTEDVALUE( fStory[Status] ),
+			        "Concluído",       "#BFE0D0",
+			        "Iniciar",         "#DCDDDE",
+			        "Em Andamento",    "#FEE397",
+			        "Em Homologação",  "#BFD8E5",
+			        "Cancelada",       "#F68E91",
+			        "#FFFFFF"
+			    ),
+			    IF(
+			        ISINSCOPE( dFeature[N+Feature] ),
+			        // Feature
+			        SWITCH(
+			            SELECTEDVALUE( dFeature[Status BR] ),
+			            "Backlog",       "#DCDDDE",
+			            "Em Andamento",  "#FEE397",
+			            "Em Produção",   "#7FB0CB",
+			            "Resumo",        "#9EECFF",
+			            "#FFFFFF"
+			        ),
+			        IF(
+			            ISINSCOPE( dObjetivo[N+Objetivo] ),
+			            // Objetivos
+			            SWITCH(
+			                SELECTEDVALUE( dObjetivo[Status BR] ),
+			                "Alcançado",      "#BFE0D0",
+			                "Em andamento",   "#FEE397",
+			                "Não Alcançado",  "#F68E91",
+			                "#FFFFFF"
+			            ),
+			            "#FFFFFF"
+			        )
+			    )
+			)
+			
+			```
+		displayFolder: Regras/ Estrutura
+		lineageTag: 3cf0b3c0-ac7c-40d7-88a9-6c18668368c7
+
+	measure 'Qtde Impedimentos' = ```
+			
+			 CALCULATE([Qtde Story], fStory[Story Bloqueada] = "Sim")+0
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 887924b2-83e3-4b8b-9bfe-ae354eb91ea1
+
+	measure '% Previsto Acumulado' = ```
+			
+			
+			VAR vAcum = [Total Acum. Previsto]
+			VAR vTot  = [Total Pontos (ALL)]
+			RETURN
+			DIVIDE ( vAcum, vTot )
+			
+			
+			/*
+			
+			% Previsto Acumulado = 
+			VAR vPrevisto = 
+			
+			    DIVIDE(
+			    [Total Acum. Previsto],
+			    [Total Pontos (ALL)], 0)
+			
+			
+			RETURN
+			IF(vPrevisto = 0, BLANK(), vPrevisto)
+			
+			*/
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Andamento TREM
+		lineageTag: ed413582-bbc8-487e-aba7-a77b2efe15aa
+
+	measure 'Total Acum. Previsto' =
+			
+			VAR _SprintAtual = MAX ( 'fSprint_program'[Sprint_Desc]  )
+			RETURN
+			CALCULATE (
+			    [Total Pontos Previsto],
+			    FILTER (
+			        ALLSELECTED ( 'fSprint_program'[Sprint_Desc]  ),
+			        'fSprint_program'[Sprint_Desc]  <= _SprintAtual
+			    )
+			)
+		displayFolder: Andamento TREM
+		lineageTag: 2eb23c03-5930-4384-bb34-643b1ce1af63
+
+		extendedProperty MeasureTemplate =
+				{
+				  "version": 0,
+				  "daxTemplateName": "RunningTotal"
+				}
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Acum. Concluidos' = ```
+			
+			VAR _SprintAtual = MAX ( 'fSprint_program'[Sprint_Desc]  )
+			RETURN
+			CALCULATE (
+			    [Total Pontos concluidos Trem],
+			    FILTER (
+			        ALLSELECTED ( 'fSprint_program'[Sprint_Desc]  ),
+			        'fSprint_program'[Sprint_Desc]  <= _SprintAtual
+			    )
+			)
+			
+			/*
+			
+			Total Acum. Concluidos = 
+			VAR _SprintAtual = MAX ( 'fSprint_program'[Sprint_Num]  )
+			RETURN
+			CALCULATE (
+			    [Total Pontos concluidos Trem],
+			    FILTER (
+			        ALLSELECTED ( 'fSprint_program'[Sprint_Num]  ),
+			        'fSprint_program'[Sprint_Num]  <= _SprintAtual
+			    )
+			)
+			
+			*/
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: e43bac67-7c7e-4e3c-853a-7351b7430ed3
+
+		extendedProperty MeasureTemplate =
+				{
+				  "version": 0,
+				  "daxTemplateName": "RunningTotal"
+				}
+
+		changedProperty = FormatString
+
+	measure 'Total Pontos (ALL)' = ```
+			
+			CALCULATE (
+			    [Total Pontos Previsto],
+			    ALLSELECTED ( 'fSprint_program'[Sprint_Desc] )
+			)
+			
+			/*
+			
+			Total Pontos (ALL) = 
+			 VAR SprintsPermitidas =
+			    CALCULATETABLE( VALUES( fStory[sn_safe_sprint] ) )
+			RETURN
+			CALCULATE(
+			    [Total Pontos],
+			    REMOVEFILTERS( fSprint_program[Sprint_Desc])   -- não usa ALL na tabela inteira
+			)
+			
+			*/
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 1c220ff1-4d4b-4302-b77e-d0b8ceb902e9
+
+	measure 'Total Pontos' =
+			
+			SUM(fSprint_program[Pontos Previstos])
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 69eee260-40f2-482a-bcb0-34d2d2890025
+
+	measure '% Concluído Acumulado' = ```
+			
+			
+			VAR vAcum = [Total Acum. Concluidos]
+			VAR vTot  = [Total Pontos (ALL)]
+			RETURN
+			DIVIDE ( vAcum, vTot )
+			
+			/*
+			% Concluído Acumulado = 
+			VAR vPrevisto = 
+			CALCULATE(
+			    DIVIDE([Total Acum. Concluidos], [Total Pontos (ALL) 2], 0)
+			)
+			
+			RETURN
+			IF(vPrevisto = 0, BLANK(), vPrevisto)
+			
+			*/
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Andamento TREM
+		lineageTag: dce92f4a-51e2-47de-8711-c4404927d919
+
+	measure Indicadores = ```
+			
+			 CONCATENATE([Qtde Story]+0&" | ",  [Total Pontos v1]+0)
+			 //CONCATENATE([Qtde Story]+0& " | ", [Total Story Point]+0)
+			```
+		displayFolder: Frequência
+		lineageTag: e908d8b1-e018-4a6c-86f6-b9633a8ea972
+
+	measure 'História de Sustentação' = CONCATENATE([Trem]&" - ", "História de Sustentação")
+		displayFolder: Títulos
+		lineageTag: ac59c324-da7f-4675-90bb-eece34d238c7
+
+	measure Impedimento = CONCATENATE([Trem]&" - ", "Impedimento")
+		displayFolder: Títulos
+		lineageTag: 364688ad-ac97-47cd-9289-e65537632de8
+
+	measure Riscos = CONCATENATE([Trem]&" - ", "Riscos")
+		displayFolder: Títulos
+		lineageTag: d2ed5551-37dd-4663-a419-a4f5b27da3ef
+
+	measure CorBranca = "#FFFFFF"
+		displayFolder: Regras/ Estrutura
+		lineageTag: 29ce6fac-5428-4729-b6ce-a3d6315578c3
+
+	measure '% Concluido Sprint' = ```
+			
+			
+			
+			VAR vPrev = [Total Pontos previsto]
+			VAR vConc = [Total Pontos concluidos]
+			RETURN
+			DIVIDE( vConc, vPrev,0)
+			
+			
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Status de Histórias
+		lineageTag: bf8cd967-c7b9-4993-84de-16dcef3376b3
+
+	measure '%Andamento do Trem' = CONCATENATE("% Andamento do Trem"&" - ",[Trem])
+		displayFolder: Títulos
+		lineageTag: bbac98e9-d376-4732-9a13-3989dd5b5034
+
+	measure 'Total Acum. Concluido 2' = ```
+			
+			IF(
+			    CALCULATE([Total Pontos concluidos Trem],
+			    FILTER(ALL(fSprint_program[Sprint_Desc]),fSprint_program[Sprint_Desc] <= MAX(fSprint_program[Sprint_Desc]
+					))) = BLANK(), [Total Pontos concluidos Trem],CALCULATE([Total Pontos concluidos Trem],
+			    FILTER(ALL(fSprint_program[Sprint_Desc]),fSprint_program[Sprint_Desc] <= MAX(fSprint_program[Sprint_Desc]
+					))))+0
+			        
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: f545a3ed-0d61-47bb-840b-d6448d6ad42f
+
+	measure 'Total Pontos (ALL) 2' = ```
+			
+			 VAR SprintsPermitidas =
+			    CALCULATETABLE( VALUES( fStory[sn_safe_sprint] ) )
+			RETURN
+			CALCULATE(
+			    [Total Pontos],
+			    REMOVEFILTERS( fSprint_program[Sprint_Desc])   -- não usa ALL na tabela inteira
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 53b81787-3d7f-421d-ad46-6bfa88d30d24
+
+	measure '% Previsto Concluído 2' = ```
+			
+			DIVIDE(
+			    [Total Acum. Concluido 2],
+			    [Total Pontos (ALL) 2],
+			    0
+			)
+			/*
+			VAR vPrevisto = 
+			CALCULATE(
+			    DIVIDE([Total Acum. Concluido 2], [Total Pontos (ALL) 2], 0)
+			)
+			
+			RETURN
+			IF(vPrevisto = 0, BLANK(), vPrevisto)+0
+			
+			*/
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Andamento TREM
+		lineageTag: 3183e5b2-2b37-49ff-8d75-3409ae7ca83d
+
+	measure 'Status Visível v3' =
+			
+			
+			
+			VAR EmStory = ISINSCOPE(fStory[N+Story])
+			VAR EmFeat  = ISINSCOPE(dFeature[N+Feature])
+			VAR EmObj   = ISINSCOPE(dObjetivo[N+Objetivo])
+			
+			/* Há Stories sob o contexto atual? (evita “vazamento”) */
+			VAR TemFatosNoContexto =
+			    CALCULATE( COUNTROWS(fStory) ) > 0
+			
+			/* Status de cada nível (sem misturar) */
+			VAR vStatusStory    = SELECTEDVALUE(fStory[Status_BR])
+			VAR vStatusFeature  = SELECTEDVALUE(dFeature[Status])
+			VAR vStatusObjetivo = SELECTEDVALUE(dObjetivo[Status])
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    /* STORY: mostra só o status da própria Story */
+			    EmStory, vStatusStory,
+			
+			    /* FEATURE: só mostra o status da Feature se houver Stories sob ela no contexto atual */
+			    EmFeat  && TemFatosNoContexto, vStatusFeature,
+			
+			    /* OBJETIVO: só mostra o status do Objetivo se houver Stories sob ele no contexto atual */
+			    EmObj   && TemFatosNoContexto, vStatusObjetivo,
+			
+			    /* Fora dos níveis ou sem interseção com a fato → nada */
+			    BLANK()
+			)
+		displayFolder: Regras/ Estrutura
+		lineageTag: 586601c4-769d-4396-a3d9-5ec152cb0823
+
+	measure 'Objetivos v2' = ```
+			
+			
+			VAR _pisSel =
+			    VALUES(dPI[Numero PI])
+			
+			-- 1) Features presentes nas histórias dos PI(s) selecionados
+			VAR _featuresSel =
+			    CALCULATETABLE(
+			        VALUES(fStory[sn_safe_feature]),
+			        TREATAS(_pisSel, fStory[Numero PI])         // PI -> fStory
+			    )
+			
+			-- 2) Objetivos referenciados por essas Features (via dFeature)
+			VAR _objetivosSel =
+			    CALCULATETABLE(
+			        VALUES(dFeature[fk_objetivo_id]),
+			        TREATAS(_featuresSel, dFeature[fk_objetivo_id])  // Feature -> dFeature
+			    )
+			
+			-- 3) Conta Objetivos distintos em dObjetivo
+			VAR _qtd =
+			    CALCULATE(
+			        DISTINCTCOUNT(dObjetivo[objetivo_id]),        // conte pela chave inteira
+			        KEEPFILTERS(dObjetivo[objetivo_id] <> BLANK()),
+			        TREATAS(_objetivosSel, dObjetivo[objetivo_id])// dObjetivo filtrado
+			    )
+			RETURN
+			    COALESCE(_qtd, 0)
+			
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 52318be0-2732-450d-9342-3298f8d3d19a
+
+	measure 'Qtde Teams v2' = DISTINCTCOUNTNOBLANK(fStory[Equipe do SAFe])
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 326445d2-84b8-497b-adf2-5446a0ad5e6e
+
+	measure '% Concluido v2' = ```
+			
+			
+			VAR vTotalStoryPoints =
+			     [Total Pontos Previsto]
+			
+			VAR vConcluidoStoryPoints =
+			    CALCULATE([Total Pontos concluidos], fStory[Status] = "Concluído")
+			  
+			
+			
+			RETURN
+			DIVIDE(vConcluidoStoryPoints, vTotalStoryPoints)
+			
+			/*
+			
+			
+			% Concluido v2 = 
+			
+			% Concluido v2 = 
+			
+			VAR vTotalStoryPoints =
+			     CALCULATE([Total Pontos Previsto], fStory[Status] <> "Cancelada")
+			
+			VAR vConcluidoStoryPoints =
+			    CALCULATE([Total Pontos concluidos], fStory[Status] = "Concluído")
+			  
+			
+			
+			RETURN
+			DIVIDE(vConcluidoStoryPoints, vTotalStoryPoints)
+			
+			*/
+			
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Status de Histórias
+		lineageTag: 97abeeff-d164-454a-a1fe-d4a2209304ac
+
+	measure 'Business Value Visível v2' = ```
+			
+			
+			SUM(dObjetivo[Valor Comercial Planejado])
+			
+			   
+			    
+			
+			
+			
+			```
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: fbfd7e01-7774-4b23-8bed-7a79d363dfaf
+
+	measure 'Story Points v2' = ```
+			
+			
+			VAR QtdHistorias =
+			    DISTINCTCOUNT( fStory[N+Story] )
+			
+			VAR StoryPointsSemCanceladas =
+			    CALCULATE(
+			        [Story Points],
+			        KEEPFILTERS( fStory[Status] <> "Cancelada" )
+			    )
+			
+			-- Detecta exclusivamente o TOTAL GERAL (nenhum nível da hierarquia em escopo)
+			VAR EhTotalGeral =
+			    NOT ISINSCOPE( fStory[N+Story] )
+			    && NOT ISINSCOPE( dFeature[N+Feature] )
+			    && NOT ISINSCOPE( dObjetivo[N+Objetivo] )
+			    // Se sua matriz tiver PI e Equipe do SAF como níveis, pode (opcional) reforçar:
+			    // && NOT ISINSCOPE( dPI[PI] )
+			    // && NOT ISINSCOPE( dTeam[Team] )
+			
+			RETURN
+			IF( EhTotalGeral, StoryPointsSemCanceladas, QtdHistorias )
+			
+			
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: a16dda04-5d1c-41b0-b6f9-64dd822937e5
+
+	measure '% Previsto Concluído 2_' = ```
+			
+			VAR vPrevisto = 
+			CALCULATE(
+			    DIVIDE([Total Acum. Concluidos], [Total Pontos (ALL)], 0)
+			)
+			
+			RETURN
+			IF(vPrevisto = 0, BLANK(), vPrevisto)+0
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Andamento TREM
+		lineageTag: 44664b06-85f3-4c1c-9a3a-962b2cf02bbe
+
+	measure 'PI Selecionada?' =
+			
+			IF( ISCROSSFILTERED( fStory[Numero PI] ), 1, 0 )
+		formatString: 0
+		displayFolder: Outras medidas
+		lineageTag: 128063f6-3872-4874-a8db-d005c4509b8a
+
+	measure 'Equipe SAFe Selecionada?' =
+			
+			IF( ISCROSSFILTERED( fStory[Equipe do SAFe] ), 1, 0 )
+		formatString: 0
+		displayFolder: Outras medidas
+		lineageTag: 9b5cd65c-96de-41b2-b7de-6ec63d5beaa4
+
+	measure 'Total Pontos concluidos' =
+			
+			SUM(
+			 fSprint_program[Pontos_concluidos]
+			)
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 06026b48-84e5-4a46-9a47-430ffc3d9cf8
+
+	measure 'Total Pontos Previsto' =
+			
+			SUMX(
+			    SUMMARIZE(
+			        fSprint_program,
+			        fSprint_program[sprint_program_id],
+			        "Status",   MAX(fSprint_program[Status]),
+			        "Escopo",   SUM(fSprint_program[Pontos_escopo_atual]),
+			        "Comprom",  SUM(fSprint_program[Pontos_comprometidos])
+			    ),
+			    SWITCH(
+			        TRUE(),
+			        [Status] = "Complete", [Comprom],
+			        [Escopo]
+			    )
+			)
+			
+			/*
+			    SUM(fSprint_program[Pontos])
+			*/
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: b7d8777b-d129-4ec9-ad30-a7aa049b1aaa
+
+	measure '% Concluido v3' = ```
+			
+			
+			VAR vPI   = VALUES( dPI[dpi_id] )
+			VAR vTeam = VALUES( dTeam[Equipe do Safe] )
+			VAR isStoryLevel =
+			    ISINSCOPE( fStory[N+Story] )    // geralmente basta
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE( fStory[N+Story] ),           [% Concluido Estrutura],
+			    BLANK()
+			)
+			
+			/*
+			% Concluido v3 = 
+			VAR vTotalStoryPoints =
+			     CALCULATE([Story Points], fStory[Status] <> "Cancelada")
+			
+			VAR vConcluidoStoryPoints =
+			    [Pontos Concluídos v2]
+			  
+			
+			
+			RETURN
+			DIVIDE(vConcluidoStoryPoints, vTotalStoryPoints, 0)
+			
+			*/
+			
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Status de Histórias
+		lineageTag: 55fe8e86-2836-4464-99d4-5d82897bca03
+
+	measure 'Pontos Concluídos v2' = ```
+			
+			CALCULATE([Story Points], fStory[Status] = "Concluído")
+			--[Story Points]
+			
+			
+			/*
+			COALESCE( SUM( dSprintPontos[Pontos Concluidos] ), 0 )
+			*/
+			
+			
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 1e63a1ba-e230-49fa-aedd-74876695b118
+
+	measure 'Pontos Previstos Sprint' =
+			
+			
+			VAR vPrevistoStoryPoints =
+			
+			COALESCE (
+			    CALCULATE (
+			        [Total Story Point],
+			        KEEPFILTERS ( fStory[Status] <> "Cancelada" )
+			    ),
+			    0
+			)
+			
+			RETURN
+			
+			vPrevistoStoryPoints
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: 59e18e7f-8064-4734-bcf7-6965a92955f7
+
+	measure 'Pontos Concluídos Sprint' =
+			
+			
+			VAR vConcluidoStoryPoints =
+			
+			COALESCE (
+			    CALCULATE (
+			        [Total Story Point],
+			        KEEPFILTERS ( fStory[Status] = "Concluído" )
+			    ),
+			    0
+			)
+			
+			RETURN
+			vConcluidoStoryPoints
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: bfd712cd-2ddc-485e-b712-a1c314c51b08
+
+	measure '% Evolução Sprint' = ```
+			
+			
+			VAR vTotal = [Pontos Previstos Sprint]          // pode vir BLANK no escopo
+			VAR vDone  = [Pontos Concluídos Sprint]         // pode vir BLANK no escopo
+			RETURN
+			IF(
+			    ISBLANK( vTotal ) && ISBLANK( vDone ),
+			    BLANK(),                                    // não “cria” linhas fora do escopo
+			    DIVIDE( COALESCE( vDone, 0 ), COALESCE( vTotal, 0 ), 0 )
+			)
+			
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 2b9fe1d1-d497-4a6c-b846-befe0bca477c
+
+	measure 'Total Story Point' = ```
+			
+			
+			
+			COALESCE(
+			    CALCULATE( SUM( fStory[Story Points] ) ),
+			    0
+			)
+			
+			        
+			
+			/*
+			Total Story Point = 
+			
+			SUM(fStory[Story Points])
+			
+			*/
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 5fe77999-99ce-4588-afb5-395d5c85185b
+
+	measure 'Total Pontos v1' =
+			
+			
+			SUM(fStory[Story Points])
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 448bf8c1-ca43-4f61-9ff4-4aff836b7463
+
+	measure 'Total Story Point (Contexto)' =
+			
+			SUMX(
+			    VALUES( fSprint_program[sprint_program_id] ),            -- <chave única do grão de fSprint_program>
+			    CALCULATE( MAX( fSprint_program[Pontos Previstos] ) )
+			)
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: 8eec8749-5e17-431a-806a-729afc8005f4
+
+	measure 'Total Pontos concluidos v2' = ```
+			
+			
+			CALCULATE(
+			    [Total Story Point],
+			    KEEPFILTERS( fStory[Status] = "Concluído" )    
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: 3b2a3dbe-0374-4cde-8889-42ab75711b7a
+
+	measure 'Total Pontos Previsto v2' = ```
+			
+			
+			CALCULATE(
+			    [Total Story Point],
+			    KEEPFILTERS( fStory[Status] <> "Cancelada" )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Status de Histórias
+		lineageTag: f3f80053-472d-41cb-88e7-f4b3fd080ce0
+
+	measure 'Total Pontos (ALL)v3' =
+			//25
+			 CALCULATE(
+			    [Total Pontos concluidos],
+			    ALL('fSprint_program'[Sprint_Desc])
+			)
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 10aba8a0-d4f5-4d2a-b99c-53b023c6fe14
+
+	measure 'Total Objetivos' = ```
+			
+			DISTINCTCOUNT( dObjetivo[objetivo_id] )
+			
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: d3c578d7-cc45-456b-b24a-d559cc508f3a
+
+	measure 'Qtde Historias no Objetivo' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( fStory[story_id] ),
+			    ALL( fStory[N+Story] )
+			)
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: ee534696-d440-4f12-8b18-50de615e999a
+
+	measure 'BV por Historia' = ```
+			
+			DIVIDE( [Business Value], [Qtde Historias no Objetivo])
+			
+			```
+		displayFolder: Regras/ Estrutura
+		lineageTag: 750175e0-c24e-4fc4-aa04-e1a23e87ee31
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'BV por Time' =
+			
+			DIVIDE( [Business Value], [Qtde Teams])
+		displayFolder: Regras/ Estrutura
+		lineageTag: 92bc6732-8412-4b6d-b9ea-364b1f0490a7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Concluido Estrutura' = ```
+			
+			VAR vEhSomenteStory =
+			    ISINSCOPE( fStory[N+Story] )
+			    && HASONEVALUE( fStory[story_id] )
+			RETURN
+			IF(
+			    NOT vEhSomenteStory,
+			    BLANK(),
+			    VAR vStatusNorm =
+			        UPPER( TRIM( SELECTEDVALUE( fStory[Status], "" ) ) )
+			    RETURN
+			        IF(
+			            vStatusNorm = "CONCLUÍDO" || vStatusNorm = "CONCLUIDO",
+			            1,
+			            0 --BLANK()
+			        )
+			)
+			
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 5163887d-3b11-4c12-9045-aa81276931ba
+
+	measure 'Total Pontos concluidos Estrutura' = ```
+			
+			SUM( fSprint_program[Pontos_concluidos] )
+			   
+			
+			
+			```
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: 3144c760-3f07-4f03-8d92-ea9d9f2c031d
+
+	measure 'Total Pontos previsto Estrutura' = ```
+			
+			SUM( fSprint_program[Pontos Previstos] )
+			
+			```
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: f36b093a-6060-4c68-a40e-06b8d977739f
+
+	measure 'Total Pontos concluidos Trem' = ```
+			
+			
+			SUM ( fSprint_program[Pontos_concluidos] )
+			
+			
+			```
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 9bc86bc0-0b5c-43f6-850c-4940ca84b156
+
+	measure 'Total Acum. Concluido trem' =
+			
+			VAR _SprintAtual = MAX( fSprint_program[Sprint_Desc] )
+			RETURN
+			CALCULATE(
+			    [Total Pontos concluidos Trem],
+			    FILTER(
+			        ALLSELECTED( fSprint_program[Sprint_Desc] ),
+			        fSprint_program[Sprint_Desc] <= _SprintAtual
+			    )
+			)
+		formatString: 0
+		displayFolder: Andamento TREM
+		lineageTag: 14b50974-1ec4-45ba-a873-d5d7e593aa79
+
+	measure 'Story Points Estrutura' =
+			
+			SUM(fStory[Story Points])
+		formatString: 0
+		displayFolder: Regras/ Estrutura
+		lineageTag: 7fb36904-1c1c-40ab-b252-d8083d77516d
+
+	measure 'Total Pontos Previstos (Controlado)' =
+			
+			
+			VAR vValor = [Total Story Point (Contexto)]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE( fStory[story_id] ), vValor,                 -- mostra no nível de Story
+			    ISINSCOPE( dFeature[sys_id] ), vValor,                 -- mostra no nível de Feature
+			    ISINSCOPE( dObjetivo[objetivo_id] ), vValor,             -- e assim por diante…
+			    vValor                                                 -- totalizadores superiores
+			)
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: ffe231ce-9c9d-4284-95b3-22a2fc8d9447
+
+	measure '% Conclusao Feature' = ```
+			
+			
+			 VAR vEhSomenteStory =
+			    ISINSCOPE( fStory[N+Story] )
+			    && HASONEVALUE( fStory[story_id] )
+			
+			VAR TemStories =
+			    NOT ISBLANK( CALCULATE( [Story Points] ) )
+			RETURN
+			IF( NOT TemStories, BLANK(),
+			    VAR vTotal = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] <> "Cancelada" ) )
+			    VAR vDone  = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] = "Concluído" ) )
+			    RETURN DIVIDE( COALESCE(vDone,0), COALESCE(vTotal,0), 0 ))
+			    
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 9befa095-3ac2-45a3-b928-3b6e5e9ebca9
+
+	measure '% Evolucao Feature_Story Estrutura' = ```
+			
+			
+			VAR vPI   = VALUES( dPI[dpi_id] )
+			VAR vTeam = VALUES( dTeam[Equipe do Safe] )
+			VAR isStoryLevel =
+			    ISINSCOPE( fStory[N+Story] )    // geralmente basta
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE( fStory[N+Story] ),           [% Concluido Estrutura],
+			    ISINSCOPE( dFeature[N+Feature] ),       [% Conclusao Feature],
+			    ISINSCOPE( dObjetivo[N+Objetivo] ),     [% Conclusao Objetivo],
+			    ISINSCOPE( dTeam[Equipe do Safe] ),   [% Conclusao Equipe do SAFe],
+			    BLANK()
+			)
+			
+			
+			/*
+			
+			
+			% Evolucao Feature_Story Estrutura = 
+			SWITCH(
+			    TRUE(),
+			
+			    /* STORY (história) */
+			    ISINSCOPE( fStory[N+Story] ) && HASONEVALUE( fStory[story_id] ),
+			    [% Concluido Estrutura],
+			
+			    /* FEATURE */
+			    ISINSCOPE( dFeature[N+Feature] ) && NOT ISINSCOPE( fStory[N+Story] ),
+			     [% Concluido Estrutura],
+			    /* OBJETIVO */
+			    ISINSCOPE( dObjetivo[N+Objetivo] )
+			        && NOT ISINSCOPE( dFeature[N+Feature] )
+			        && NOT ISINSCOPE( fStory[N+Story] ),
+			     [% Concluido Estrutura],
+			
+			    /* EQUIPE (SAFe) */
+			    ISINSCOPE( dTeam[Equipe do Safe] )
+			        && NOT ISINSCOPE( dObjetivo[N+Objetivo] )
+			        && NOT ISINSCOPE( dFeature[N+Feature] )
+			        && NOT ISINSCOPE( fStory[N+Story] ),
+			    [% Concluido Estrutura],
+			
+			    /* Demais casos (totais/subtotais atípicos) */
+			    BLANK()
+			)
+			*/
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 211fdc46-3afe-4067-a412-df52b0a037fd
+
+	measure '% Conclusao Objetivo' = ```
+			
+			
+			 VAR vEhSomenteObjetivo =
+			    ISINSCOPE( dObjetivo[N+Objetivo])
+			    && HASONEVALUE( dObjetivo[objetivo_id])
+			
+			VAR TemObjetivo =
+			    NOT ISBLANK( CALCULATE( [Story Points] ) )
+			RETURN
+			IF( NOT TemObjetivo, BLANK(),
+			    VAR vTotal = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] <> "Cancelada" ) )
+			    VAR vDone  = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] = "Concluído" ) )
+			    RETURN DIVIDE( COALESCE(vDone,0), COALESCE(vTotal,0), 0 ))
+			
+			/*
+			
+			 VAR vEhSomenteStory =
+			    ISINSCOPE( fStory[N+Story] )
+			    && HASONEVALUE( fStory[story_id] )
+			
+			VAR TemStories =
+			    NOT ISBLANK( CALCULATE( [Story Points] ) )
+			RETURN
+			IF( NOT TemStories, BLANK(),
+			    VAR vTotal = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] <> "Cancelada" ) )
+			    VAR vDone  = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] = "Concluído" ) )
+			    RETURN DIVIDE( COALESCE(vDone,0), COALESCE(vTotal,0), 0 ))
+			
+			*/
+			```
+		displayFolder: Regras/ Estrutura
+		lineageTag: 7b55ee16-dca9-4f8a-a9fd-5c6903051c12
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Conclusao Equipe do SAFe' = ```
+			
+			
+			 VAR vEhSomenteStory =
+			    ISINSCOPE( dTeam[assignment_group])
+			    && HASONEVALUE( dTeam[assignment_group] )
+			
+			VAR TemStories =
+			    NOT ISBLANK( CALCULATE( [Story Points] ) )
+			RETURN
+			IF( NOT TemStories, BLANK(),
+			    VAR vTotal = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] <> "Cancelada" ) )
+			    VAR vDone  = CALCULATE( [Story Points], KEEPFILTERS( fStory[Status] = "Concluído" ) )
+			    RETURN DIVIDE( COALESCE(vDone,0), COALESCE(vTotal,0), 0 ))
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: Regras/ Estrutura
+		lineageTag: 61335578-6ce4-4602-870f-13265d083240
+
+	measure 'Sprints Trem' =
+			
+			VAR vTrem = SELECTEDVALUE(dPI[Trem])
+			
+			RETURN
+			IF(
+			    vTrem = BLANK(), "Sprint",
+			    CONCATENATE("Sprints"&" - ", vTrem)
+			)
+		displayFolder: Títulos
+		lineageTag: 6e103e8e-df26-47a3-9723-42e48e5e454e
+
+	measure 'Acomp. Trem Sprint' = CONCATENATE("Fluxo da Sprint - Itens de Trabalho", " - "&"["&[Trem]&"]")
+		displayFolder: Títulos
+		lineageTag: c9a3ca43-8dba-4456-8bf4-c3af4c93f4ce
+
+	measure 'Capacidade do Time (pontos)' =
+			
+			CALCULATE(
+			    SUM(fSprint_program[Capacidade do grupo (pontos)]),
+			    USERELATIONSHIP(fSprint_program[sprint_program_id], fStory[sn_safe_sprint])
+			)
+		formatString: 0
+		displayFolder: Análise Sprints
+		lineageTag: 950155fe-7843-4cad-b3ab-1b268b78f36a
+
+	measure Planejados =
+			
+			CALCULATE(
+			    SUM(fSprint_program[Pontos_comprometidos]),
+			    USERELATIONSHIP(fSprint_program[sprint_program_id], fStory[sn_safe_sprint])
+			)
+		formatString: 0
+		displayFolder: Análise Sprints
+		lineageTag: 44241a65-2a1d-47b0-8a7b-1953067c363e
+
+	measure Atual =
+			
+			CALCULATE(
+			    SUM(fSprint_program[Pontos_escopo_atual]),
+			    USERELATIONSHIP(fSprint_program[sprint_program_id], fStory[sn_safe_sprint])
+			)
+		formatString: 0
+		displayFolder: Análise Sprints
+		lineageTag: cb3cde4b-a4ea-4a03-bd45-15f2db44d4be
+
+	measure Concluídos =
+			
+			CALCULATE(
+			    SUM(fSprint_program[Pontos_concluidos]),
+			    USERELATIONSHIP(fSprint_program[sprint_program_id], fStory[sn_safe_sprint])
+			)
+		formatString: 0
+		displayFolder: Análise Sprints
+		lineageTag: d0ada5da-5b17-4850-bfe8-27d155083094
+
+	measure 'Sub Sprint Time' =
+			
+			VAR vTime = SELECTEDVALUE(dTeam[Equipe do Safe])
+			
+			RETURN
+			IF(
+			    vTime = BLANK(), BLANK(),
+			    CONCATENATE("Time"&" - ", vTime)
+			)
+		displayFolder: Títulos
+		lineageTag: cc29884c-82d4-4ce4-b4c4-6a354c8c0c0f
+
+	measure 'Qtde Acessos' =
+			
+			SUM('View Report'[Qtde Acessos])
+		formatString: #,0
+		lineageTag: 6280e369-ebc6-4cd9-ae7b-0ca4c9ef5996
+
+	measure 'Related Sprit - Story' = ```
+			
+			CALCULATE(
+			    //SELECTEDVALUE(fSprint_program[Sprint_Desc]),
+			    [Qtde Story],
+			    USERELATIONSHIP(
+			        fSprint_program[sprint_program_id], 
+			        fStory[sn_safe_sprint]
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: de2f57d0-efdc-49d8-b3e6-e92c94bb338e
+
+	measure 'Story Points lSprint' = ```
+			
+			
+			VAR vStoryPoints = CALCULATE(
+			    SUM(fStory[Story Points]),
+			    USERELATIONSHIP(
+			        fStory[sn_safe_sprint],
+			        fSprint_program[sprint_program_id]
+			    )
+			)
+			
+			RETURN 
+			IF(vStoryPoints = 0, BLANK(), vStoryPoints)
+			```
+		formatString: 0
+		displayFolder: Frequência
+		lineageTag: eeec4ace-0f61-4437-9e84-14255e9b371d
+
+	measure Percent = DIVIDE([Concluídos], [Planejados], 0)
+		formatString: 0%;-0%;0%
+		displayFolder: Análise Sprints
+		lineageTag: 3889379e-a75f-4797-a5b5-9db7ddd9980c
+
+	measure 'Card. Sprint' = ```
+			
+			
+			VAR vTrem = SELECTEDVALUE(dPI[Trem])
+			
+			RETURN
+			IF(
+			    vTrem <> BLANK(), 
+			    CONCATENATE("Card da Sprint", " - "&"["&vTrem&"]"), "Card da Sprint"
+			)
+			```
+		displayFolder: Títulos
+		lineageTag: 2e6b30f7-df96-4e57-b97e-c923945d54c0
+
+	measure 'Sub Sprint' = ```
+			
+			
+			//VAR vTrem = SELECTEDVALUE(dPI[Trem])
+			VAR vSprint = SELECTEDVALUE(fSprint_program[Sprint_Desc])
+			
+			RETURN
+			IF(
+			    vSprint <> BLANK(), 
+			    "Visual com os números da "&vSprint, BLANK()
+			)
+			```
+		displayFolder: Títulos
+		lineageTag: 2eaa30b1-dece-488a-b8c6-6c59a8bd2a69
+
+	measure 'Story Points lSprint Label' = ```
+			
+			
+			VAR vStoryPoints = CALCULATE(
+			    SUM(fStory[Story Points]),
+			    USERELATIONSHIP(
+			        fStory[sn_safe_sprint],
+			        fSprint_program[sprint_program_id]
+			    )
+			)
+			
+			RETURN 
+			IF(vStoryPoints = 0, BLANK(), "Pontos | "&"[ "&vStoryPoints&" ]")
+			```
+		displayFolder: Frequência
+		lineageTag: 9219f2d2-2cbc-4460-961a-d5f9b7ba0c78
+
+	partition Medidas = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
+				in
+				    #"Colunas Removidas"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+
