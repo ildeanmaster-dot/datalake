@@ -1,1 +1,647 @@
+-- ============================================================
+-- PROJETO TRAIN | PAINEL SAFe - CONSULTAS POWER BI
+-- Fonte: dt0016_prd.servicenow_gdtec
+-- Organizado por aba do painel
+-- ============================================================
 
+
+-- ============================================================
+-- [0] DIMENSÃO FILTROS (Menu de Filtros - Imagem 2)
+-- Slicers: Trem, PI, Times, Sprint, Objetivos, Feature
+-- ============================================================
+
+-- 0.1 Dim_Trem (derivado de top_program / sn_safe_program)
+SELECT DISTINCT
+    sn_safe_program          AS trem_nk,
+    dv_sn_safe_program       AS trem_nome
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_feature
+WHERE sn_safe_program IS NOT NULL
+ORDER BY trem_nome;
+
+-- 0.2 Dim_ProgramIncrement
+SELECT DISTINCT
+    sys_id                          AS pi_nk,
+    number                          AS pi_number,
+    short_description               AS pi_nome,
+    start_date                      AS pi_inicio,
+    end_date                        AS pi_fim,
+    state                           AS pi_state,
+    dv_state                        AS pi_state_desc,
+    sn_safe_program                 AS trem_nk,
+    dv_sn_safe_program              AS trem_nome
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_program_increment
+ORDER BY pi_number DESC;
+
+-- 0.3 Dim_Sprint (com PI vinculado)
+SELECT DISTINCT
+    sys_id                          AS sprint_nk,
+    number                          AS sprint_number,
+    short_description               AS sprint_nome,
+    state                           AS sprint_state,
+    dv_state                        AS sprint_state_desc,
+    start_date                      AS sprint_inicio,
+    end_date                        AS sprint_fim,
+    sn_safe_program_increment       AS pi_nk,
+    dv_sn_safe_program_increment    AS pi_nome,
+    active                          AS sprint_ativo
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint
+ORDER BY sprint_number DESC;
+
+-- 0.4 Dim_Team (Times por Trem)
+SELECT DISTINCT
+    g.assignment_group               AS team_nk,
+    g.dv_assignment_group            AS team_nome,
+    g.sn_safe_program_increment      AS pi_nk,
+    g.dv_sn_safe_program_increment   AS pi_nome
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group g
+ORDER BY team_nome;
+
+-- 0.5 Dim_PIObjective (filtro Objetivos)
+SELECT
+    sys_id                          AS objetivo_nk,
+    number                          AS objetivo_number,
+    short_description               AS objetivo_nome,
+    sn_safe_program_increment       AS pi_nk,
+    dv_sn_safe_program_increment    AS pi_nome,
+    sn_safe_program                 AS trem_nk,
+    dv_sn_safe_program              AS trem_nome,
+    type                            AS tipo,
+    dv_type                         AS tipo_desc,
+    committed                       AS comprometido
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective
+ORDER BY objetivo_number;
+
+-- 0.6 Dim_Feature (filtro Feature)
+SELECT
+    sys_id                          AS feature_nk,
+    number                          AS feature_number,
+    short_description               AS feature_nome,
+    state                           AS state,
+    dv_state                        AS state_desc,
+    sn_safe_program_increment       AS pi_nk,
+    assignment_group                AS team_nk,
+    dv_assignment_group             AS team_nome,
+    story_points                    AS pontos_estimados,
+    percent_complete                AS pct_concluido
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_feature
+ORDER BY feature_number;
+
+
+-- ============================================================
+-- [1] ABA EXECUTIVA
+-- KPIs: Times, Total Objetivos, Riscos, Impedimentos,
+--        Features, Histórias
+-- Gráfico: Andamento dos Times (% por time)
+-- Burnup: % Andamento do Trem por Sprint
+-- ============================================================
+
+-- 1.1 KPIs Executivos (card por trem)
+SELECT
+    pi_g.sn_safe_program_increment  AS pi_nk,
+    -- Trem via join com PI
+    COUNT(DISTINCT pi_g.assignment_group)           AS total_times,
+    -- Objetivos
+    COUNT(DISTINCT obj.number)                      AS total_objetivos,
+    -- Features
+    COUNT(DISTINCT f.number)                        AS total_features,
+    -- Histórias
+    COUNT(DISTINCT s.number)                        AS total_historias,
+    -- Pontos
+    SUM(COALESCE(s.story_points, 0))                AS total_pontos,
+    -- Pontos Concluídos
+    SUM(CASE WHEN s.state = '9' THEN COALESCE(s.story_points, 0) ELSE 0 END) AS pontos_concluidos
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_m2m_group pi_g
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective obj
+    ON obj.sn_safe_program_increment = pi_g.sn_safe_program_increment
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+    ON f.sn_safe_program_increment = pi_g.sn_safe_program_increment
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+    ON s.sn_safe_program_increment = pi_g.sn_safe_program_increment
+GROUP BY
+    pi_g.sn_safe_program_increment;
+
+-- 1.2 KPI Riscos e Impedimentos (por PI)
+SELECT
+    s.sn_safe_program_increment      AS pi_nk,
+    COUNT(DISTINCT r.number)          AS total_riscos,
+    -- Impedimentos = stories bloqueadas
+    COUNT(DISTINCT CASE WHEN s.blocked = true THEN s.number END) AS total_impedimentos
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_m2m_feature_risk m2m
+    ON m2m.u_safe_feature = s.sn_safe_feature
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_risk r
+    ON r.number = m2m.u_safe_risk
+GROUP BY s.sn_safe_program_increment;
+
+-- 1.3 Andamento dos Times (barra horizontal % concluído por time)
+SELECT
+    s.assignment_group               AS team_nk,
+    s.dv_assignment_group            AS team_nome,
+    s.sn_safe_program_increment      AS pi_nk,
+    COUNT(DISTINCT s.number)          AS total_historias,
+    SUM(COALESCE(s.story_points, 0))  AS total_pontos,
+    SUM(CASE WHEN s.state IN ('9', '8') -- Concluído / Fechado
+        THEN COALESCE(s.story_points, 0) ELSE 0 END)  AS pontos_concluidos,
+    ROUND(
+        CASE WHEN SUM(COALESCE(s.story_points, 0)) > 0
+        THEN SUM(CASE WHEN s.state IN ('9', '8') THEN COALESCE(s.story_points, 0) ELSE 0 END)
+             * 100.0 / SUM(COALESCE(s.story_points, 0))
+        ELSE 0 END
+    , 1)                              AS pct_concluido
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+WHERE s.active = true
+GROUP BY
+    s.assignment_group,
+    s.dv_assignment_group,
+    s.sn_safe_program_increment
+ORDER BY pct_concluido DESC;
+
+-- 1.4 Burnup por Sprint (% Andamento do Trem)
+-- Pontos Previstos x Concluídos acumulados por Sprint
+SELECT
+    sp.number                           AS sprint_number,
+    sp.short_description                AS sprint_nome,
+    sp.start_date                       AS sprint_inicio,
+    sp.end_date                         AS sprint_fim,
+    sp.sn_safe_program_increment        AS pi_nk,
+    -- Total de pontos planejados no sprint
+    SUM(COALESCE(s.story_points, 0))    AS pontos_previstos,
+    -- Pontos efetivamente concluídos
+    SUM(CASE WHEN s.state IN ('9','8')
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS pontos_concluidos,
+    COUNT(DISTINCT s.number)            AS total_historias,
+    -- % Concluído no sprint
+    ROUND(
+        CASE WHEN SUM(COALESCE(s.story_points, 0)) > 0
+        THEN SUM(CASE WHEN s.state IN ('9','8')
+                 THEN COALESCE(s.story_points, 0) ELSE 0 END)
+             * 100.0 / SUM(COALESCE(s.story_points, 0))
+        ELSE 0 END
+    , 0)                                AS pct_concluido_sprint
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+    ON s.sn_safe_sprint = sp.sys_id
+GROUP BY
+    sp.number,
+    sp.short_description,
+    sp.start_date,
+    sp.end_date,
+    sp.sn_safe_program_increment
+ORDER BY sp.start_date;
+
+
+-- ============================================================
+-- [2] ABA ESTRUTURA
+-- Hierarquia: PI > Equipe > Objetivo > Feature > Story
+-- Colunas: BV, Itens, Pontos, % Concluído, Status
+-- Visual: Matrix com drill-down
+-- ============================================================
+
+-- 2.1 Query principal da Matrix Estrutura
+SELECT
+    -- Nível PI
+    s.sn_safe_program_increment         AS pi_nk,
+    sp.dv_sn_safe_program_increment     AS pi_nome,
+
+    -- Nível Equipe
+    s.assignment_group                  AS team_nk,
+    s.dv_assignment_group               AS team_nome,
+
+    -- Nível Objetivo (PI Objective)
+    obj.number                          AS objetivo_number,
+    obj.short_description               AS objetivo_nome,
+    COALESCE(obj.planned_business_value, 0)  AS bv_planejado,
+
+    -- Nível Feature
+    f.number                            AS feature_number,
+    CONCAT('[', f.number, '] ', f.short_description) AS feature_label,
+    f.dv_state                          AS feature_state,
+
+    -- Nível Story
+    s.number                            AS story_number,
+    CONCAT('[', f.number, '.S', ROW_NUMBER() OVER (
+        PARTITION BY f.number ORDER BY s.number
+    ), '] ', s.short_description)       AS story_label,
+    s.short_description                 AS story_descricao,
+    COALESCE(s.story_points, 0)         AS pontos,
+    s.state                             AS state_code,
+    s.dv_state                          AS state_desc,
+    s.percent_complete                  AS pct_concluido,
+
+    -- Status derivado para coluna Status (cores)
+    CASE
+        WHEN s.state = '9'  THEN 'Concluído'
+        WHEN s.state = '8'  THEN 'Cancelado(a)'
+        WHEN s.state = '4'  THEN 'Em Produção'
+        WHEN s.state = '3'  THEN 'Em Andamento'
+        WHEN s.state = '2'  THEN 'Iniciado'
+        WHEN s.state = '1'  THEN 'Não Iniciado'
+        ELSE s.dv_state
+    END                                 AS status_label,
+
+    -- BV no nível story (Business Value da Feature pai)
+    f.actual_benefits                   AS bv_realizado
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+-- Join com Sprint para PI name
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+-- Join com Feature
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+    ON f.number = s.sn_safe_feature
+    OR f.sys_id = s.sn_safe_feature
+-- Join com PI Objective via Feature
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective obj
+    ON obj.sn_safe_program_increment = s.sn_safe_program_increment
+    AND obj.assignment_group = s.assignment_group
+WHERE s.active = true
+   OR s.state = '8'  -- Inclui canceladas para visibilidade
+ORDER BY
+    s.sn_safe_program_increment,
+    s.dv_assignment_group,
+    obj.number,
+    f.number,
+    s.number;
+
+-- 2.2 Totais por Feature (para colunas Itens, Pontos, % Concluído da matrix)
+SELECT
+    f.number                            AS feature_number,
+    f.short_description                 AS feature_nome,
+    f.sn_safe_program_increment         AS pi_nk,
+    f.assignment_group                  AS team_nk,
+    f.dv_assignment_group               AS team_nome,
+    f.actual_benefits                   AS bv_realizado,
+    -- Métricas agregadas das stories
+    COUNT(DISTINCT s.number)            AS total_itens,
+    SUM(COALESCE(s.story_points, 0))    AS total_pontos,
+    ROUND(AVG(COALESCE(s.percent_complete, 0)), 0) AS pct_concluido_medio,
+    -- Status predominante
+    CASE
+        WHEN SUM(CASE WHEN s.state = '8' THEN 1 ELSE 0 END) = COUNT(*) THEN 'Cancelada'
+        WHEN SUM(CASE WHEN s.state = '9' THEN 1 ELSE 0 END) = COUNT(*) THEN 'Concluído'
+        WHEN SUM(CASE WHEN s.state IN ('3','4') THEN 1 ELSE 0 END) > 0  THEN 'Em Andamento'
+        ELSE 'Não Iniciado'
+    END                                 AS status_feature
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+    ON s.sn_safe_feature = f.number
+    OR s.sn_safe_feature = f.sys_id
+GROUP BY
+    f.number, f.short_description, f.sn_safe_program_increment,
+    f.assignment_group, f.dv_assignment_group, f.actual_benefits
+ORDER BY f.number;
+
+
+-- ============================================================
+-- [3] ABA DETALHADA
+-- Kanban de Status: --, Iniciar, Andamento, Validação,
+--                   Homologação, Cancelada
+-- Qtde Cards | Pontos por coluna
+-- Tabela detalhe: Equipe, Número, História
+-- Gráfico Sprint por Time
+-- ============================================================
+
+-- 3.1 Contagem por Status (Kanban cards)
+SELECT
+    s.assignment_group              AS team_nk,
+    s.dv_assignment_group           AS team_nome,
+    s.sn_safe_program_increment     AS pi_nk,
+    -- Mapeamento para colunas kanban do painel
+    CASE
+        WHEN s.state = '1'  THEN '1 - Iniciar'
+        WHEN s.state = '2'  THEN '2 - Andamento'
+        WHEN s.state = '3'  THEN '3 - Validação'
+        WHEN s.state = '4'  THEN '4 - Homologação'
+        WHEN s.state = '8'  THEN '5 - Cancelada'
+        WHEN s.state = '9'  THEN '6 - Concluído'
+        ELSE '0 - Indefinido'
+    END                             AS kanban_coluna,
+    COUNT(DISTINCT s.number)         AS qtd_cards,
+    SUM(COALESCE(s.story_points, 0)) AS total_pontos
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+GROUP BY
+    s.assignment_group,
+    s.dv_assignment_group,
+    s.sn_safe_program_increment,
+    CASE
+        WHEN s.state = '1'  THEN '1 - Iniciar'
+        WHEN s.state = '2'  THEN '2 - Andamento'
+        WHEN s.state = '3'  THEN '3 - Validação'
+        WHEN s.state = '4'  THEN '4 - Homologação'
+        WHEN s.state = '8'  THEN '5 - Cancelada'
+        WHEN s.state = '9'  THEN '6 - Concluído'
+        ELSE '0 - Indefinido'
+    END
+ORDER BY team_nome, kanban_coluna;
+
+-- 3.2 Detalhe das Histórias (tabela na aba Detalhada)
+SELECT
+    s.dv_assignment_group           AS equipe_safe,
+    s.number                        AS numero_historia,
+    -- Label com Feature + Story
+    CONCAT('[', f.number, '.S1] ', s.short_description) AS historia_label,
+    s.short_description             AS historia_descricao,
+    f.number                        AS feature_number,
+    COALESCE(s.story_points, 0)     AS pontos,
+    s.state                         AS state_code,
+    CASE
+        WHEN s.state = '1'  THEN '1 - Iniciar'
+        WHEN s.state = '2'  THEN '2 - Andamento'
+        WHEN s.state = '3'  THEN '3 - Validação'
+        WHEN s.state = '4'  THEN '4 - Homologação'
+        WHEN s.state = '8'  THEN '5 - Cancelada'
+        WHEN s.state = '9'  THEN '6 - Concluído'
+        ELSE s.dv_state
+    END                             AS status_label,
+    s.sn_safe_sprint                AS sprint_nk,
+    sp.number                       AS sprint_number,
+    s.sn_safe_program_increment     AS pi_nk,
+    s.dv_assigned_to                AS responsavel,
+    s.opened_at                     AS data_abertura,
+    s.closed_at                     AS data_fechamento
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+    ON f.sys_id = s.sn_safe_feature
+    OR f.number = s.sn_safe_feature
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+ORDER BY s.dv_assignment_group, s.number;
+
+-- 3.3 Gráfico Sprints por Time (aba Detalhada - barra de velocidade)
+SELECT
+    s.dv_assignment_group           AS team_nome,
+    sp.number                       AS sprint_number,
+    sp.short_description            AS sprint_nome,
+    sp.start_date                   AS sprint_inicio,
+    COUNT(DISTINCT s.number)         AS total_historias,
+    SUM(COALESCE(s.story_points, 0)) AS total_pontos,
+    SUM(CASE WHEN s.state IN ('9','8')
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS pontos_entregues,
+    ROUND(
+        CASE WHEN SUM(COALESCE(s.story_points, 0)) > 0
+        THEN SUM(CASE WHEN s.state IN ('9','8')
+                 THEN COALESCE(s.story_points, 0) ELSE 0 END)
+             * 100.0 / SUM(COALESCE(s.story_points, 0))
+        ELSE 0 END
+    , 0)                            AS pct_entregue
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+GROUP BY
+    s.dv_assignment_group,
+    sp.number,
+    sp.short_description,
+    sp.start_date
+ORDER BY s.dv_assignment_group, sp.start_date;
+
+
+-- ============================================================
+-- [4] ABA IMPACTOS
+-- Seção 1: Histórias de Sustentação
+-- Seção 2: Impedimentos (stories bloqueadas)
+-- Seção 3: Riscos com Feature vinculada
+-- ============================================================
+
+-- 4.1 Histórias de Sustentação
+-- (backlog_type = 'sustentação' ou classification específico)
+SELECT
+    s.number                        AS numero_historia,
+    s.dv_assignment_group           AS equipe_safe,
+    s.short_description             AS descricao,
+    s.dv_state                      AS status,
+    s.dv_assigned_to                AS atribuido_a,
+    s.sn_safe_program_increment     AS pi_nk,
+    sp.number                       AS sprint_number
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+WHERE
+    s.backlog_type IN ('sustentacao', 'sustentação', 'support')
+    OR s.classification LIKE '%susten%'
+ORDER BY s.dv_assignment_group, s.number;
+
+-- 4.2 Impedimentos (stories bloqueadas)
+SELECT
+    s.number                        AS numero_historia,
+    s.dv_assignment_group           AS equipe_safe,
+    -- Descrição resumida (primeiros 200 chars)
+    SUBSTRING(s.short_description, 1, 200) AS descricao_resumida,
+    s.blocked                       AS bloqueada,
+    s.blocked_reason                AS motivo_bloqueio,
+    s.dv_state                      AS status,
+    s.sn_safe_program_increment     AS pi_nk,
+    sp.number                       AS sprint_number,
+    s.opened_at                     AS data_abertura
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+WHERE s.blocked = true
+ORDER BY s.dv_assignment_group, s.opened_at DESC;
+
+-- 4.3 Riscos com Feature vinculada (tabela G&E - Riscos)
+SELECT
+    r.number                        AS numero_risco,
+    -- Label: [Time PI12] - R01 - Descrição
+    CONCAT('[', s_grp.dv_assignment_group, ' PI12] - ', r.short_description) AS risco_label,
+    r.short_description             AS risco_descricao,
+    r.dv_state                      AS risco_estado,
+    r.dv_priority                   AS risco_prioridade,
+    r.dv_impact                     AS risco_impacto,
+    r.u_probability                 AS probabilidade,
+    r.u_mitigation_plan             AS plano_mitigacao,
+    r.dv_assigned_to                AS atribuido_a,
+    -- Feature vinculada via bridge
+    f.number                        AS feature_number,
+    f.short_description             AS feature_descricao,
+    CONCAT('[', f.number, ' ', f.short_description, ']') AS feature_label,
+    f.sn_safe_program_increment     AS pi_nk,
+    f.dv_assignment_group           AS equipe_safe,
+    r.due_date                      AS data_limite,
+    r.sys_updated_on                AS ultima_atualizacao
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_risk r
+-- Join via tabela bridge Feature <-> Risk
+JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_m2m_feature_risk m2m
+    ON m2m.u_safe_risk = r.number
+JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+    ON f.number = m2m.u_safe_feature
+    OR f.sys_id = m2m.u_safe_feature
+-- Para nome do time (via story vinculada à feature)
+LEFT JOIN (
+    SELECT DISTINCT sn_safe_feature, dv_assignment_group
+    FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story
+) s_grp ON s_grp.sn_safe_feature = f.sys_id
+WHERE r.state NOT IN ('7', '8')  -- Exclui riscos fechados/cancelados
+ORDER BY f.dv_assignment_group, r.number;
+
+
+-- ============================================================
+-- [5] ABA SPRINT
+-- Fluxo de Itens: status das histórias no sprint atual
+-- Card da Sprint: Capacidade vs Planejado vs Atual vs Concluído
+-- ============================================================
+
+-- 5.1 Fluxo da Sprint - Itens por Status (stacked bar)
+SELECT
+    s.dv_assignment_group           AS team_nome,
+    sp.number                       AS sprint_number,
+    sp.short_description            AS sprint_nome,
+    CASE
+        WHEN s.state = '8' THEN '8 - Cancelada'
+        WHEN s.state = '9' THEN '9 - Concluído'
+        WHEN s.state = '4' THEN '4 - Homologação'
+        WHEN s.state = '3' THEN '3 - Validação'
+        WHEN s.state = '2' THEN '2 - Andamento'
+        WHEN s.state = '1' THEN '1 - Iniciar'
+        ELSE '0 - Sem Estado'
+    END                             AS status_sprint,
+    COUNT(DISTINCT s.number)         AS qtd_historias,
+    SUM(COALESCE(s.story_points, 0)) AS total_pontos
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+GROUP BY
+    s.dv_assignment_group,
+    sp.number,
+    sp.short_description,
+    CASE
+        WHEN s.state = '8' THEN '8 - Cancelada'
+        WHEN s.state = '9' THEN '9 - Concluído'
+        WHEN s.state = '4' THEN '4 - Homologação'
+        WHEN s.state = '3' THEN '3 - Validação'
+        WHEN s.state = '2' THEN '2 - Andamento'
+        WHEN s.state = '1' THEN '1 - Iniciar'
+        ELSE '0 - Sem Estado'
+    END
+ORDER BY team_nome, sprint_number, status_sprint;
+
+-- 5.2 Card da Sprint (Capacidade x Planejado x Atual x Concluído)
+SELECT
+    s.dv_assignment_group               AS team_nome,
+    sp.number                           AS sprint_number,
+    sp.short_description                AS sprint_nome,
+    sp.start_date                       AS sprint_inicio,
+    sp.end_date                         AS sprint_fim,
+
+    -- Capacidade = story_points planejados no início do sprint
+    SUM(COALESCE(s.story_points, 0))    AS capacidade_pontos,
+
+    -- Planejado = pontos aceitos/comprometidos
+    SUM(CASE WHEN s.state <> '8'
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS planejado_pontos,
+
+    -- Atual = pontos em trabalho (estados 2, 3, 4)
+    SUM(CASE WHEN s.state IN ('2','3','4')
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS atual_pontos,
+
+    -- Concluído = pontos em estado 9
+    SUM(CASE WHEN s.state = '9'
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS concluido_pontos,
+
+    -- Cancelado
+    SUM(CASE WHEN s.state = '8'
+        THEN COALESCE(s.story_points, 0) ELSE 0 END) AS cancelado_pontos,
+
+    COUNT(DISTINCT s.number)             AS total_historias,
+    COUNT(DISTINCT CASE WHEN s.state = '9' THEN s.number END) AS historias_concluidas
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+GROUP BY
+    s.dv_assignment_group,
+    sp.number,
+    sp.short_description,
+    sp.start_date,
+    sp.end_date
+ORDER BY team_nome, sp.start_date DESC;
+
+
+-- ============================================================
+-- [EXTRA] VIEW CONSOLIDADA PARA POWER BI
+-- Única query para importar como tabela fato no Power BI
+-- Une todas as informações necessárias
+-- ============================================================
+
+SELECT
+    -- === IDENTIFICAÇÃO ===
+    s.number                            AS story_number,
+    s.short_description                 AS story_descricao,
+    s.type                              AS story_type,
+    s.dv_type                           AS story_type_desc,
+    s.backlog_type                      AS backlog_type,
+    s.dv_backlog_type                   AS backlog_type_desc,
+
+    -- === HIERARQUIA SAFe ===
+    s.sn_safe_program_increment         AS pi_nk,
+    s.dv_sn_safe_program_increment      AS pi_nome,
+    s.sn_safe_sprint                    AS sprint_nk,
+    sp.number                           AS sprint_number,
+    sp.short_description                AS sprint_nome,
+    sp.start_date                       AS sprint_inicio,
+    sp.end_date                         AS sprint_fim,
+    f.number                            AS feature_number,
+    f.short_description                 AS feature_nome,
+    obj.number                          AS objetivo_number,
+    obj.short_description               AS objetivo_nome,
+    COALESCE(obj.planned_business_value, 0)   AS bv_planejado,
+    COALESCE(obj.actual_business_value, 0)    AS bv_realizado,
+
+    -- === TIME / ATRIBUIÇÃO ===
+    s.assignment_group                  AS team_nk,
+    s.dv_assignment_group               AS team_nome,
+    s.dv_assigned_to                    AS responsavel,
+
+    -- === STATUS ===
+    s.state                             AS state_code,
+    s.dv_state                          AS state_desc,
+    CASE
+        WHEN s.state = '1' THEN '1 - Iniciar'
+        WHEN s.state = '2' THEN '2 - Andamento'
+        WHEN s.state = '3' THEN '3 - Validação'
+        WHEN s.state = '4' THEN '4 - Homologação'
+        WHEN s.state = '8' THEN '5 - Cancelada'
+        WHEN s.state = '9' THEN '6 - Concluído'
+        ELSE '0 - Indefinido'
+    END                                 AS kanban_coluna,
+    CASE WHEN s.state IN ('9') THEN 1 ELSE 0 END AS flag_concluida,
+    CASE WHEN s.state IN ('8') THEN 1 ELSE 0 END AS flag_cancelada,
+    s.blocked                           AS flag_bloqueada,
+    s.made_sla                          AS flag_sla_ok,
+    s.active                            AS flag_ativo,
+
+    -- === MÉTRICAS ===
+    COALESCE(s.story_points, 0)         AS story_points,
+    COALESCE(s.percent_complete, 0)     AS pct_concluido,
+    COALESCE(s.remaining_effort, 0)     AS esforco_restante,
+    COALESCE(s.time_worked, 0)          AS tempo_trabalhado,
+    COALESCE(s.business_duration, 0)    AS duracao_uteis,
+    COALESCE(s.cost, 0)                 AS custo_total,
+    COALESCE(s.capex_cost, 0)           AS custo_capex,
+    COALESCE(s.opex_cost, 0)            AS custo_opex,
+
+    -- === DATAS ===
+    CAST(s.opened_at AS DATE)           AS data_abertura,
+    CAST(s.closed_at AS DATE)           AS data_fechamento,
+    CAST(s.due_date AS DATE)            AS data_vencimento,
+    sp.start_date                       AS data_sprint_inicio,
+    sp.end_date                         AS data_sprint_fim,
+
+    -- === AUDITORIA ===
+    s.sys_created_on                    AS criado_em,
+    s.sys_updated_on                    AS atualizado_em
+
+FROM dt0016_prd.servicenow_gdtec.vw_sn_safe_story s
+
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_sprint sp
+    ON sp.sys_id = s.sn_safe_sprint
+
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_feature f
+    ON f.sys_id = s.sn_safe_feature
+    OR f.number = s.sn_safe_feature
+
+LEFT JOIN dt0016_prd.servicenow_gdtec.vw_sn_safe_pi_objective obj
+    ON obj.sn_safe_program_increment = s.sn_safe_program_increment
+    AND obj.assignment_group = s.assignment_group
+
+ORDER BY s.sn_safe_program_increment, s.dv_assignment_group, sp.number, s.number;
