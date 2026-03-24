@@ -1,0 +1,1745 @@
+- ret_fundo_52:
+    Control: Rectangle@2.3.0
+    Group: Add/EditTemplate_6
+    Properties:
+      BorderColor: =RGBA(0, 0, 0, 0)
+      Fill: =RGBA(125, 125, 125, 0.59)
+      Height: =App.Height
+      Visible: |-
+        =//loc__popup
+        true
+      Width: =App.ActiveScreen.Width + If(varMenu,55,0)
+- cnt_popup_27:
+    Control: GroupContainer@1.5.0
+    Variant: ManualLayout
+    Group: Add/EditTemplate_6
+    Properties:
+      DropShadow: =DropShadow.Semilight
+      Fill: =RGBA(255, 255, 255, 1)
+      Height: =764
+      RadiusBottomLeft: =20
+      RadiusBottomRight: =20
+      RadiusTopLeft: =20
+      RadiusTopRight: =20
+      Visible: |-
+        =//loc__popup
+        true
+      Width: =800
+      X: =App.ActiveScreen.Width /2 - cnt_popup_27.Width/2
+      Y: =App.ActiveScreen.Height /2 - cnt_popup_27.Height/2
+    Children:
+      - Rectangle1_142:
+          Control: Rectangle@2.3.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 103, 176, 1)
+            Height: =5
+            Width: =cnt_popup_27.Width
+      - txt_adicionarnovousuario_43:
+          Control: Text@0.0.51
+          Group: Group1_11
+          Properties:
+            Align: ='TextCanvas.Align'.Start
+            Height: =30
+            PaddingLeft: =10
+            Size: =22
+            Text: ="Project"
+            VerticalAlign: =VerticalAlign.Top
+            Weight: ='TextCanvas.Weight'.Bold
+            Width: =534
+            X: =21
+            Y: =15
+      - ToggleDateProjeto_1:
+          Control: Toggle@1.1.5
+          Properties:
+            Font: =Font.'Segoe UI'
+            FontSize: =10
+            Height: =30
+            Label: |
+              =If(
+                      ToggleDateProjeto_1.Checked,
+                  "Date Format: dd/mm/yyyy ",
+                  "Date Format: mm/dd/yyyy "
+              )
+            OnCheck: |-
+              =Reset(frm_proj_sd_start_3);
+              Reset(frm_proj_sd_end_3)
+            OnUncheck: |-
+              =
+              Reset(frm_proj_sd_start_3);
+              Reset(frm_proj_sd_end_3)
+            Visible: =false
+            Width: =250
+            X: =135
+            Y: =15
+      - Image7_2:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =60
+            Image: |-
+              =Coalesce(
+
+              LookUp(Project,ID = ItemProject.ID).logo.Full
+              ,
+              AddPicture1_2.Media)
+
+
+              /*
+
+              Coalesce(
+
+              If(
+                  CountRows(colProjectAttachments) > 0;
+                  First(colProjectAttachments).Value;
+                  Blank()
+              );
+              AddPicture1_1.Media)
+
+              */
+            Width: =120
+            X: =387
+            Y: =15
+      - frm_project_img_edit_6:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =30
+            Image: =foto
+            OnSelect: |
+              =UpdateContext({loc__popup_img:true});
+              EditForm(FormUploadImg_1)
+            TabIndex: =1
+            Tooltip: ="Edit processs"
+            Width: =30
+            X: =509
+            Y: =15
+      - pdc-frm_pop-profissionais_lbl-nome_174:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =30
+            Size: =10
+            Text: ="Upload logo"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Bold
+            Width: =160
+            Wrap: =false
+            X: =539
+            Y: =15
+      - Icon3_50:
+          Control: Classic/Icon@2.5.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(106, 122, 127, 1)
+            Height: =30
+            Icon: =Icon.CancelBadge
+            OnSelect: |
+              =Reset(frm_proj_txt_name_3);
+              Reset(frm_proj_cbb_type_3);
+              Reset(frm_proj_cbb_template_3);
+              Reset(frm_proj_ccb_aircraft_4);
+              Reset(frm_proj_sd_start_3);
+              Reset(frm_proj_sd_end_3);
+              Reset(frm_proj_txt_cbb_status_3);
+              Reset(frm_proj_txt_country_3);
+              Reset(frm_proj_txt_site_3);
+              //Reset(frm_proj_txt_eis_type);;
+              Reset(frm_proj_txt_lessor_3);
+              Reset(frm_proj_ccb_eis_manager_3);
+              Reset(frm_proj_ccb_cam_3);
+              Reset(frm_proj_sd_eis_date_3);
+              Reset(frm_proj_sd_loa_date_3);
+              Reset(frm_proj_sd_pa_date_3);
+
+              Reset(frm_proj_txt_customer_1);
+              Reset(frm_proj_ccb_aircraft_5);
+              Reset(frm_proj_txt_quantity_3);
+
+
+              UpdateContext({loc__popup: false})
+            Width: =30
+            X: '=cnt_popup_27.Width - 40  '
+            Y: =19
+      - pdc-frm_pop-profissionais_lbl-nome_175:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Name"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =27
+            Y: =51
+      - pdc-frm_pop-profissionais_lbl-nome_176:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Project Type"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =550
+            Y: =51
+      - frm_proj_txt_name_3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Name
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Height: =cfg_controls.Input.Height
+            HintText: |+
+              ="Enter the Name"
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =480
+            X: =27
+            Y: =86
+      - frm_proj_cbb_type_3:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Value: ItemProject.Project_Type}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["Value"]
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select Type"
+            Items: =["Remarketing", "New Aircraft"]
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["Value"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: =216
+            X: =550
+            Y: =86
+      - pdc-frm_pop-profissionais_lbl-nome_177:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Template"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =27
+            Y: =121
+      - pdc-frm_pop-profissionais_lbl-nome_178:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Aircraft"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =120
+            Wrap: =false
+            X: =frm_proj_ccb_aircraft_4.X
+            Y: =121
+      - pdc-frm_pop-profissionais_lbl-nome_179:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="* Qty"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =50
+            Wrap: =false
+            X: =706
+            Y: =121
+      - frm_proj_cbb_template_3:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Name: ItemProject.Template }
+
+              //LookUp(Templates; ID = First(ItemTemplate).ID).Status
+
+              //{Value: LookUp(Templates; ID = First(ItemTemplate).ID).Status}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["BusinessUnit_Name"]
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select template"
+            Items: =Filter(Templates, Status.Value = "Published")
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["BusinessUnit_Name"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: =480
+            X: =27
+            Y: =156
+      - frm_proj_ccb_aircraft_4:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Aircraft: ItemProject.Aircraft}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["Aircraft"]
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select Aircraft"
+            Items: |-
+              =Filter(
+
+              Aircraft, IsActive = "Active")
+
+              //["Published"; "Disabled"; "Development"]
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["Aircraft"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: |+
+              =216 -60
+            X: =550
+            Y: =156
+      - frm_proj_txt_quantity_2:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Quantity
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Format: =TextFormat.Number
+            Height: =cfg_controls.Input.Height
+            HintText: =
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            MaxLength: =3
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =60
+            X: =706
+            Y: =156
+      - pdc-frm_pop-profissionais_lbl-nome_180:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Customer"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =27
+            Y: =198
+      - pdc-frm_pop-profissionais_lbl-nome_181:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Aircraft"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =120
+            Wrap: =false
+            X: =550
+            Y: =198
+      - pdc-frm_pop-profissionais_lbl-nome_182:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Qty"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =50
+            Wrap: =false
+            X: =706
+            Y: =198
+      - frm_proj_txt_customer_1:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Customer
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Height: =cfg_controls.Input.Height
+            HintText: |
+              ="Enter the Name"
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =480
+            X: =27
+            Y: =233
+      - frm_proj_ccb_aircraft_5:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Aircraft: ItemProject.Aircraft1}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["Aircraft"]
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select Aircraft"
+            Items: |-
+              =Aircraft
+
+              //["Published"; "Disabled"; "Development"]
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["Aircraft"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: |
+              =216 -60
+            X: =550
+            Y: =233
+      - frm_proj_txt_quantity_3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Quantity1
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Format: =TextFormat.Number
+            Height: =cfg_controls.Input.Height
+            HintText: =
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            MaxLength: =3
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =60
+            X: =706
+            Y: =233
+      - pdc-frm_pop-profissionais_lbl-nome_183:
+          Control: Text@0.0.51
+          Properties:
+            Align: ='TextCanvas.Align'.Start
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Start Date"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =216
+            Wrap: =false
+            X: =27
+            Y: =273
+      - pdc-frm_pop-profissionais_lbl-nome_184:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="End Date"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =216
+            Wrap: =false
+            X: =291
+            Y: =273
+      - pdc-frm_pop-profissionais_lbl-nome_185:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Status"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =550
+            Y: =273
+      - frm_proj_sd_start_3:
+          Control: DatePicker@0.0.46
+          Properties:
+            AccessibleLabel: =
+            BorderColor: =varIfErrorUser6
+            BorderStyle: |-
+              =If(
+                  IsBlank(Self.SelectedDate) && varIfErrorUser6 = Color.DarkRed,
+                  BorderStyle.Solid,
+                  BorderStyle.None
+              )
+            DateTimeZone: =
+            DisplayMode: =Parent.DisplayMode
+            Format: "=\"dd/mm/yyyy\"\r\n \r\n\r\n\r\n/*\r\nIf(\r\n    ToggleDateProjeto.Checked;\r\n    \"dd/mm/yyyy\";\r\n    \"mm/dd/yyyy\"\r\n)\r\n*/"
+            Height: =35
+            OnChange: |-
+              =
+              /*
+              UpdateContext(
+                  { locStartDate: frm_proj_sd_start.SelectedDate }
+              )
+              */
+
+              /*
+
+              If(
+                  !IsBlank(Self.SelectedDate) && !IsBlank(frm_proj_sd_end.SelectedDate);
+                  If(
+                      Self.SelectedDate > frm_proj_sd_end.SelectedDate;
+                      Notify("The start date cannot be later than the end date."; NotificationType.Error; 3000);;
+                      Reset(Self)
+                  )
+              )
+
+
+              */
+            Placeholder: ="Select"
+            SelectedDate: |-
+              =ItemProject.StartDate
+
+              /*
+              If(
+                  Toggle1_1.Checked;
+
+              Text(ItemProject.StartDate; "dd/mm/yyyy"); 
+              Text(ItemProject.StartDate; "mm/dd/yyyy") 
+              )
+              */
+            ValidationState: =
+            Width: =216
+            X: =27
+            Y: =308
+      - frm_proj_sd_end_3:
+          Control: DatePicker@0.0.46
+          Properties:
+            AccessibleLabel: =
+            BorderColor: =varIfErrorUser6
+            BorderStyle: |-
+              =If(
+                  IsBlank(Self.SelectedDate) && varIfErrorUser6 = Color.DarkRed,
+                  BorderStyle.Solid,
+                  BorderStyle.None
+              )
+            DisplayMode: =Parent.DisplayMode
+            Format: "=\"dd/mm/yyyy\"\r\n "
+            Height: =35
+            OnChange: |+
+              =
+              /*
+              If(
+                  !IsBlank(Self.SelectedDate) && !IsBlank(frm_proj_sd_start.SelectedDate);
+                  If(
+                      Self.SelectedDate < frm_proj_sd_start.SelectedDate;
+                      Notify("The end date cannot be earlier than the start date."; NotificationType.Error; 3000);;
+                      Reset(Self)
+                  )
+              )
+
+              */
+
+
+            Placeholder: ="Select"
+            SelectedDate: |-
+              =ItemProject.EndDate
+
+
+
+              /*
+
+              If(
+                  Toggle1_1.Checked;
+
+              Text(ItemProject.EndDate; "dd/mm/yyyy"); 
+              Text(ItemProject.EndDate; "mm/dd/yyyy") 
+              )
+
+              */
+            ValidationState: =
+            Width: =216
+            X: =291
+            Y: =308
+      - frm_proj_txt_cbb_status_3:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |+
+              =
+              If(
+                  !IsBlank(ItemProject.Status),
+                  [ItemProject.Status],
+                  ["Development"]
+              )
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["Value"]
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select status"
+            Items: =["Published", "Development","Closed"]
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["Value"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: =216
+            X: =550
+            Y: =308
+      - txt_adicionarnovousuario_44:
+          Control: Text@0.0.51
+          Group: Group1_11
+          Properties:
+            Align: ='TextCanvas.Align'.Start
+            Height: =35
+            PaddingLeft: =10
+            Size: =22
+            Text: ="Details"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Bold
+            Width: =350
+            X: =20
+            Y: =341
+      - Rect_divisor_5:
+          Control: Rectangle@2.3.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(214, 221, 224, 1)
+            Height: =1
+            Width: =cnt_popup_27.Width
+            Y: =348
+      - btn_cancela_cadusuario_64:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisplayMode: |-
+              =DisplayMode.Edit
+              /*
+              If( (CountRows(
+                  Filter(
+                      FirstN(Template_Task; 2000);
+                      TemplateName = First(ItemTemplate).Name
+                  )
+              )) <> 0; DisplayMode.Edit; DisplayMode.Disabled)
+              */
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(214, 221, 224, 1)
+            OnSelect: |-
+              =Set(FilterGanttProj,ItemProject.ID)
+              ;
+              Navigate(GantChart_Screen_Project,Transition.None)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(0, 0, 0, 0)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Gantt Chart"
+            Width: =140
+            X: =451
+            Y: =354
+      - btn_cancela_cadusuario_65:
+          Control: Classic/Button@2.2.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(214, 221, 224, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(214, 221, 224, 1)
+            OnSelect: |-
+              =
+              Navigate('Master Plan',Transition.None)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(214, 221, 224, 1)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Master Plan"
+            Width: '=140 '
+            X: =626
+            Y: =354
+      - btn_salvar_novo_usuario_38:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(5, 64, 161, 0.64)
+            Fill: =RGBA(5, 64, 161, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Normal
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(5, 64, 161, 0.61)
+            OnSelect: =UpdateContext({loc__popup_add_task:true})
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(5, 64, 161, 0.64)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Task"
+            Visible: =false
+            Width: '=140 '
+            X: =299
+            Y: =355
+      - btn_cancela_cadusuario_66:
+          Control: Classic/Button@2.2.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisplayMode: |-
+              =DisplayMode.Edit
+              /*
+              If( (CountRows(
+                  Filter(
+                      FirstN(Template_Task; 2000);
+                      TemplateName = First(ItemTemplate).Name
+                  )
+              )) <> 0; DisplayMode.Edit; DisplayMode.Disabled)
+              */
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(214, 221, 224, 1)
+            OnSelect: |-
+              =//Refresh(Templates);;
+              //Refresh(Template_Task);;
+              //Refresh(Tasks_processs);;
+              Set(GantChartTemplate,true)
+
+
+              /*
+              Set(VisibleEditarData;true);;
+              Set(VisibleBtEdit;true);;
+              Set(VisibleBtSave;false);;
+              Set(VisibleSalvarData;false)
+              */
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(0, 0, 0, 0)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Gantt Chart"
+            Visible: =false
+            Width: '=140 '
+            X: =468
+            Y: =355
+      - pdc-frm_pop-profissionais_lbl-nome_186:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Country "
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =29
+            Y: =390
+      - pdc-frm_pop-profissionais_lbl-nome_187:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  Site"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =406
+            Y: =390
+      - frm_proj_txt_country_3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Country
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Height: =35
+            HintText: |
+              ="Enter the value"
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =360
+            X: =29
+            Y: =426
+      - frm_proj_txt_site_3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Site
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            DisplayMode: |-
+              =If(ItemProject.Status = "Published",
+
+              DisplayMode.Disabled,
+              DisplayMode.Edit)
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Height: =35
+            HintText: |
+              ="Enter the value"
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =360
+            X: =406
+            Y: =426
+      - DataCardKey31_16:
+          Control: Text@0.0.51
+          Properties:
+            Height: =22
+            Text: ="Manual start date?"
+            Visible: =false
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =122
+            Wrap: =false
+            X: =24
+            Y: =457
+      - pdc-frm_pop-profissionais_lbl-nome_188:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Lessor"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =29
+            Y: =461
+      - pdc-frm_pop-profissionais_lbl-nome_189:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  CAM"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =406
+            Y: =461
+      - frm_proj_txt_lessor_3:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =cfg_controls.Input.BorderColor
+            BorderStyle: =cfg_controls.Input.BorderStyle
+            BorderThickness: =cfg_controls.Input.BorderThickness
+            Color: =cfg_controls.Input.Color
+            Default: =ItemProject.Lessor
+            DisabledBorderColor: =cfg_controls.Input.DisabledBorderColor
+            DisabledColor: =cfg_controls.Input.DisabledColor
+            DisabledFill: =cfg_controls.Input.DisabledFill
+            Fill: =cfg_controls.Input.Fill
+            FocusedBorderColor: =cfg_controls.Input.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Input.FocusedBorderThickness
+            Font: =cfg_controls.Input.Font
+            FontWeight: =cfg_controls.Input.FontWeight
+            Height: =35
+            HintText: |
+              ="Enter the value"
+            HoverBorderColor: =cfg_controls.Input.HoverBorderColor
+            HoverColor: =cfg_controls.Input.HoverColor
+            HoverFill: =cfg_controls.Input.HoverFill
+            PaddingBottom: =cfg_controls.Input.PaddingBottom
+            PaddingLeft: =cfg_controls.Input.PaddingLeft
+            PaddingRight: =cfg_controls.Input.PaddingRight
+            PaddingTop: =cfg_controls.Input.PaddingTop
+            PressedBorderColor: =cfg_controls.Input.PressedBorderColor
+            PressedColor: =cfg_controls.Input.PressedColor
+            PressedFill: =cfg_controls.Input.PressedFill
+            RadiusBottomLeft: =cfg_controls.Input.RadiusBottomLeft
+            RadiusBottomRight: =cfg_controls.Input.RadiusBottomRight
+            RadiusTopLeft: =cfg_controls.Input.RadiusTopLeft
+            RadiusTopRight: =cfg_controls.Input.RadiusTopRight
+            Size: =cfg_controls.Input.Size
+            Width: =360
+            X: =29
+            Y: =497
+      - frm_proj_ccb_cam_3:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Value: ItemProject.CAM}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["City"]
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select CAM"
+            Items: |+
+              =Filter(
+                  Office365Users.SearchUser(
+                      {
+                          searchTerm: Self.SearchText,
+                          top: 999
+                      }
+                  ),
+                  !IsBlank(Mail)
+              )
+
+
+              /*
+              With(
+                  {
+                      _users: Office365Users.SearchUser(
+                          {
+                              searchTerm: Self.SearchText;
+                              top: 999
+                          }
+                      )
+                  };
+                  Filter(
+                      _users;
+                      !IsBlank(Mail) &&
+                      Find("@embraer"; Lower(Mail)) > 0
+                  )
+              )
+              */
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["City"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: =360
+            X: =406
+            Y: =497
+      - pdc-frm_pop-profissionais_lbl-nome_190:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="*  EIS Manager"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =29
+            Y: =534
+      - pdc-frm_pop-profissionais_lbl-nome_191:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="EIS Date"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =406
+            Y: =535
+      - frm_proj_ccb_eis_manager_3:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =cfg_controls.Combobox.BorderColor
+            BorderStyle: =cfg_controls.Combobox.BorderStyle
+            BorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            ChevronBackground: =cfg_controls.Combobox.ChevronBackground
+            ChevronDisabledBackground: =cfg_controls.Combobox.ChevronDisabledBackground
+            ChevronDisabledFill: =cfg_controls.Combobox.ChevronDisabledFill
+            ChevronFill: =cfg_controls.Combobox.ChevronFill
+            ChevronHoverBackground: =cfg_controls.Combobox.ChevronHoverBackground
+            ChevronHoverFill: =cfg_controls.Combobox.ChevronHoverFill
+            Color: =cfg_controls.Combobox.Color
+            DefaultSelectedItems: |-
+              ={Value: ItemProject.EIS_manager }
+
+              //LookUp(Templates; ID = First(ItemTemplate).ID).Status
+
+              //{Value: LookUp(Templates; ID = First(ItemTemplate).ID).Status}
+            DisabledBorderColor: =cfg_controls.Combobox.DisabledBorderColor
+            DisabledColor: =cfg_controls.Combobox.DisabledColor
+            DisabledFill: =cfg_controls.Combobox.DisabledFill
+            DisplayFields: =["City"]
+            FocusedBorderColor: =cfg_controls.Combobox.FocusedBorderColor
+            FocusedBorderThickness: =cfg_controls.Combobox.FocusedBorderThickness
+            Font: =cfg_controls.Combobox.Font
+            FontWeight: =cfg_controls.Combobox.FontWeight
+            Height: =cfg_controls.Combobox.Height
+            HoverBorderColor: =cfg_controls.Combobox.HoverBorderColor
+            HoverColor: =cfg_controls.Combobox.HoverColor
+            HoverFill: =cfg_controls.Combobox.HoverFill
+            InputTextPlaceholder: ="Select Manager"
+            Items: |-
+              =Filter(
+                  Office365Users.SearchUser(
+                      {
+                          searchTerm: Self.SearchText,
+                          top: 999
+                      }
+                  ),
+                  !IsBlank(Mail)
+              )
+
+
+
+              /*
+
+              Filter(
+                  Office365Users.SearchUser(
+                      {
+                          searchTerm: Self.SearchText;
+                          top: 999
+                      }
+                  );
+                  !IsBlank(Mail) &&
+                  (
+                      EndsWith(Lower(Mail); "@embraer.com") ||
+                      EndsWith(Lower(Mail); "@globmail.com") ||
+                      EndsWith(Lower(Mail); "@nl.embraer.com") ||
+                      EndsWith(Lower(Mail); "@sin.embraer.com")
+                  )
+              )
+
+
+              */
+            NoSelectionText: ="Default"
+            OnChange: =
+            PaddingBottom: =//cfg_controls.Combobox.PaddingBottom
+            PaddingLeft: =cfg_controls.Combobox.PaddingLeft
+            PaddingRight: =cfg_controls.Combobox.PaddingRight
+            PaddingTop: =//cfg_controls.Combobox.PaddingTop
+            PressedBorderColor: =cfg_controls.Combobox.PressedBorderColor
+            PressedColor: =cfg_controls.Combobox.PressedColor
+            PressedFill: =cfg_controls.Combobox.PressedFill
+            SearchFields: =["City"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =cfg_controls.Combobox.SelectionFill
+            SelectionTagColor: =cfg_controls.Combobox.SelectionTagColor
+            SelectionTagFill: =cfg_controls.Combobox.SelectionTagFill
+            Size: =cfg_controls.Combobox.Size
+            Width: =360
+            X: =29
+            Y: =570
+      - frm_proj_sd_eis_date_3:
+          Control: DatePicker@0.0.46
+          Properties:
+            AccessibleLabel: =
+            BorderColor: =varIfErrorUser6
+            BorderStyle: |-
+              =If(
+                  IsBlank(Self.SelectedDate) && varIfErrorUser6 = Color.DarkRed,
+                  BorderStyle.Solid,
+                  BorderStyle.None
+              )
+            DisplayMode: =Parent.DisplayMode
+            Format: |-
+              ="dd/mm/yyyy"
+              /*
+              If(
+                  Toggle1_1.Checked;
+                  "dd/mm/yyyy";
+                  "mm/dd/yyyy"
+              )
+              */
+            Height: =35
+            OnChange: |+
+              =If(
+                  !IsBlank(Self.SelectedDate) && !IsBlank(frm_proj_sd_start_3.SelectedDate),
+                  If(
+                      Self.SelectedDate < frm_proj_sd_start_3.SelectedDate,
+                      Notify("The end date cannot be earlier than the start date.", NotificationType.Error, 3000);
+                      Reset(Self)
+                  )
+              )
+
+
+              /*
+              If(
+                  !IsBlank(frm_template_sd_start.SelectedDate);
+                  If(
+                      DateValue(Self.SelectedDate) > DateValue(frm_template_sd_start.SelectedDate);
+                      Notify("Please review the selected date."; NotificationType.Error);;
+                      Reset(frm_template_sd_end)
+                  )
+              )
+              */
+
+
+            Placeholder: ="Select"
+            SelectedDate: |-
+              =If(
+                  Toggle1_18.Checked,
+
+              Text(ItemProject.EIS_date, "dd/mm/yyyy"), 
+              Text(ItemProject.EIS_date, "mm/dd/yyyy") 
+              )
+
+
+              //ItemProject.EIS_date
+            ValidationState: =
+            Width: =360
+            X: =406
+            Y: =570
+      - pdc-frm_pop-profissionais_lbl-nome_192:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="LOA Date"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =27
+            Y: =609
+      - pdc-frm_pop-profissionais_lbl-nome_193:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="PA Date"
+            VerticalAlign: =VerticalAlign.Middle
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =229
+            Y: =609
+      - frm_proj_sd_loa_date_3:
+          Control: DatePicker@0.0.46
+          Properties:
+            AccessibleLabel: =
+            BorderColor: =varIfErrorUser6
+            BorderStyle: |-
+              =If(
+                  IsBlank(Self.SelectedDate) && varIfErrorUser6 = Color.DarkRed,
+                  BorderStyle.Solid,
+                  BorderStyle.None
+              )
+            DisplayMode: =Parent.DisplayMode
+            Format: |-
+              ="dd/mm/yyyy"
+              /*
+              If(
+                  Toggle1_1.Checked;
+                  "dd/mm/yyyy";
+                  "mm/dd/yyyy"
+              )*/
+
+
+              //"mm/dd/yyyy"
+            Height: =35
+            OnChange: |+
+              =
+              /*
+              If(
+                  !IsBlank(Self.SelectedDate) && !IsBlank(frm_proj_sd_start.SelectedDate);
+                  If(
+                      Self.SelectedDate < frm_proj_sd_start.SelectedDate;
+                      Notify("The end date cannot be earlier than the start date."; NotificationType.Error; 3000);;
+                      Reset(Self)
+                  )
+              )
+
+              */
+
+
+            Placeholder: ="Select"
+            SelectedDate: |+
+              =If(
+                  Toggle1_18.Checked,
+
+              Text(ItemProject.LOA_date, "dd/mm/yyyy"), 
+              Text(ItemProject.LOA_date, "mm/dd/yyyy") 
+              )
+
+
+              //ItemProject.LOA_date
+
+            ValidationState: =
+            Width: =160
+            X: =24
+            Y: =644
+      - frm_proj_sd_pa_date_3:
+          Control: DatePicker@0.0.46
+          Properties:
+            AccessibleLabel: =
+            BorderColor: =varIfErrorUser6
+            BorderStyle: |-
+              =If(
+                  IsBlank(Self.SelectedDate) && varIfErrorUser6 = Color.DarkRed,
+                  BorderStyle.Solid,
+                  BorderStyle.None
+              )
+            DisplayMode: =Parent.DisplayMode
+            Format: |-
+              ="dd/mm/yyyy"
+              /*
+              If(
+                  Toggle1_1.Checked;
+                  "dd/mm/yyyy";
+                  "mm/dd/yyyy"
+              )
+              */
+
+              //"mm/dd/yyyy"
+            Height: =35
+            OnChange: |+
+              =
+
+              /*
+
+              If(
+                  !IsBlank(Self.SelectedDate) && !IsBlank(frm_proj_sd_start.SelectedDate);
+                  If(
+                      Self.SelectedDate < frm_proj_sd_start.SelectedDate;
+                      Notify("The end date cannot be earlier than the start date."; NotificationType.Error; 3000);;
+                      Reset(Self)
+                  )
+              )
+
+
+
+              */
+
+
+            Placeholder: ="Select"
+            SelectedDate: |-
+              =If(
+                  Toggle1_18.Checked,
+
+              Text(ItemProject.PA_date, "dd/mm/yyyy"), 
+              Text(ItemProject.PA_date, "mm/dd/yyyy") 
+              )
+
+
+              //ItemProject.PA_date
+            ValidationState: =
+            Width: =160
+            X: =229
+            Y: =644
+      - pdc-frm_pop-profissionais_lbl-nome_194:
+          Control: Text@0.0.51
+          Properties:
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Text: ="Action List"
+            VerticalAlign: =VerticalAlign.Middle
+            Visible: |-
+              =If(ItemProject.Status = "Published",
+
+              true,
+              false)
+            Weight: ='TextCanvas.Weight'.Semibold
+            Width: =160
+            Wrap: =false
+            X: =61
+            Y: =704
+      - btn_cancela_cadusuario_67:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisplayMode: |-
+              =DisplayMode.Edit
+              /*
+              If( (CountRows(
+                  Filter(
+                      FirstN(Template_Task; 2000);
+                      TemplateName = First(ItemTemplate).Name
+                  )
+              )) <> 0; DisplayMode.Edit; DisplayMode.Disabled)
+              */
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            OnSelect: |-
+              =UpdateContext({ loc__popup_add_task:true})
+              //Refresh(Templates);;
+              //Refresh(Template_Task);;
+              //Refresh(Tasks_processs);;
+              //Set(GantChartTemplate;true)
+
+
+              /*
+              Set(VisibleEditarData;true);;
+              Set(VisibleBtEdit;true);;
+              Set(VisibleBtSave;false);;
+              Set(VisibleSalvarData;false)
+              */
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(0, 0, 0, 0)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="View Tasks"
+            Width: '=140 '
+            X: =197
+            Y: =704
+      - btn_cancela_cadusuario_68:
+          Control: Classic/Button@2.2.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(214, 221, 224, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(214, 221, 224, 1)
+            OnSelect: |-
+              =Reset(frm_proj_txt_name_3);
+              Reset(frm_proj_cbb_type_3);
+              Reset(frm_proj_cbb_template_3);
+              Reset(frm_proj_ccb_aircraft_4);
+              Reset(frm_proj_sd_start_3);
+              Reset(frm_proj_sd_end_3);
+              Reset(frm_proj_txt_cbb_status_3);
+              Reset(frm_proj_txt_country_3);
+              Reset(frm_proj_txt_site_3);
+              //Reset(frm_proj_txt_eis_type);;
+              Reset(frm_proj_txt_lessor_3);
+              Reset(frm_proj_ccb_eis_manager_3);
+              Reset(frm_proj_ccb_cam_3);
+              Reset(frm_proj_sd_eis_date_3);
+              Reset(frm_proj_sd_loa_date_3);
+              Reset(frm_proj_sd_pa_date_3);
+
+              Reset(frm_proj_txt_customer_1);
+              Reset(frm_proj_ccb_aircraft_5);
+              Reset(frm_proj_txt_quantity_3);
+
+              UpdateContext({loc__popup: false});
+              UpdateContext({ItemProject: Blank()})
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(214, 221, 224, 1)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Cancel"
+            Width: '=140 '
+            X: =473
+            Y: =704
+      - btn_salvar_novo_usuario_39:
+          Control: Classic/Button@2.2.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =RGBA(5, 64, 161, 0.64)
+            Fill: =RGBA(5, 64, 161, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Normal
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(5, 64, 161, 0.61)
+            OnSelect: "=If(\r\n    Or(\r\n        IsBlank(frm_proj_txt_name_3.Text),\r\n        IsBlank(Coalesce(frm_proj_cbb_template_3.Selected.Name,ItemProject.Template)),\r\n        IsBlank(frm_proj_cbb_type_3.Selected.Value),\r\n        IsBlank(frm_proj_ccb_aircraft_4.Selected.Aircraft),\r\n        IsBlank(Coalesce(frm_proj_ccb_cam_3.Selected.DisplayName , ItemProject.CAM)),\r\n        IsBlank(Coalesce(frm_proj_ccb_eis_manager_3.Selected.DisplayName, ItemProject.EIS_manager))\r\n    ),\r\n    Notify(\r\n        \"⚠️ Please fill in all required fields before saving.\",\r\n        NotificationType.Error,\r\n        3000\r\n    ),\r\n\r\n    With(\r\n        {\r\n            ResultadoPatch:\r\n                IfError(\r\n                    Patch(Project,\r\n                     Coalesce(\r\n                        LookUp(Project, ID = ItemProject.ID),\r\n                        Defaults(Project)),\r\n                        {\r\n                            Name:frm_proj_txt_name_3.Text,\r\n                            Project_Type:frm_proj_cbb_type.Selected.Value,\r\n                            Template:frm_proj_cbb_template.Selected.Name,\r\n                            Aircraft:frm_proj_ccb_aircraft.Selected.Aircraft,\r\n                            StartDate:frm_proj_sd_start.SelectedDate,\r\n                            EndDate:frm_proj_sd_end.SelectedDate,\r\n                            Status:frm_proj_txt_cbb_status.Selected.Value,\r\n                            Country:frm_proj_txt_country.Text,\r\n                            Site:frm_proj_txt_site.Text,\r\n                            //EIS_type:frm_proj_txt_eis_type.Text;\r\n                            Lessor: frm_proj_txt_lessor.Text,\r\n                            EIS_manager:frm_proj_ccb_eis_manager.Selected.DisplayName,\r\n                            CAM:frm_proj_ccb_cam.Selected.DisplayName,\r\n                            LOA_date:frm_proj_sd_loa_date.SelectedDate,\r\n                            PA_date:frm_proj_sd_pa_date.SelectedDate,\r\n                            EIS_date:frm_proj_sd_eis_date.SelectedDate,\r\n                            Quantity:Value(frm_proj_txt_quantity.Text),\r\n                            \r\n                            Customer:frm_proj_txt_customer.Text,\r\n                            Aircraft1:frm_proj_ccb_aircraft_2.Selected.Aircraft,\r\n                            Quantity1:Value(frm_proj_txt_quantity_1.Text)\r\n\r\n                        }\r\n                    ),\r\n                    Blank();\r\n                    \r\n                )\r\n        }, Blank()\r\n\r\n                ;                           \r\n\r\n            Notify(\"Project Created successfully!\",NotificationType.Success))\r\n            \r\n            ;\r\n\r\nReset(frm_proj_txt_name);\r\nReset(frm_proj_cbb_type);\r\nReset(frm_proj_cbb_template);\r\nReset(frm_proj_ccb_aircraft);\r\nReset(frm_proj_sd_start);\r\nReset(frm_proj_sd_end);\r\nReset(frm_proj_txt_cbb_status);\r\nReset(frm_proj_txt_country);\r\nReset(frm_proj_txt_site);\r\nReset(frm_proj_txt_quantity);\r\nReset(frm_proj_txt_lessor);\r\nReset(frm_proj_ccb_eis_manager);\r\nReset(frm_proj_ccb_cam);\r\nReset(frm_proj_sd_eis_date);\r\nReset(frm_proj_sd_loa_date);\r\nReset(frm_proj_sd_pa_date);\r\n\r\nReset(frm_proj_txt_customer);\r\nReset(frm_proj_ccb_aircraft_2);\r\nReset(frm_proj_txt_quantity_1);\r\n\r\nUpdateContext({loc__popup: false});\r\nUpdateContext({ItemProject: Blank()})\r\n                )\r\n"
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(5, 64, 161, 0.64)
+            RadiusBottomLeft: =7
+            RadiusBottomRight: =7
+            RadiusTopLeft: =7
+            RadiusTopRight: =7
+            Size: =11
+            Text: ="Save"
+            Width: '=140 '
+            X: =636
+            Y: =704
+      - frm_project_img_edit_4:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =30
+            Image: ='lista-de-reproducao'
+            OnSelect: |+
+              =UpdateContext({project_search:ItemProject.Name});
+              UpdateContext({loc__popup:false});
+
+              Navigate(
+                  ActionList_Screen,
+                  ScreenTransition.None,
+                  {
+                          project_search:project_search
+                  }
+              )
+            TabIndex: =1
+            Tooltip: ="Edit processs"
+            Visible: |-
+              =If(ItemProject.Status = "Published",
+
+              true,
+              false)
+            Width: =25
+            X: =25
+            Y: =707
+      - Rectangle1_143:
+          Control: Rectangle@2.3.0
+          Group: Group1_11
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 103, 176, 1)
+            Height: =5
+            Width: =cnt_popup_27.Width
+            Y: =cnt_popup_27.Height - 5
