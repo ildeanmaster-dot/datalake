@@ -1,0 +1,3772 @@
+Screens:
+  Template_v8_5:
+    Properties:
+      Fill: =RGBA(214, 221, 224, 0.28)
+      OnVisible: |-
+        =Set(varCompStep_, 1);
+        Set(varSelectedTaskNode, Blank());
+        Set(varEditTaskNode, Blank());
+        Set(varTogMilestone, false);
+        Set(varTogVisible, true);
+        Set(varSelectedPrecType, "");
+        Set(varV4View, "tree");
+        Set(varV4TaskEndDate, Blank());
+        Set(varV4SubEndDate, Blank());
+        Set(varV4PrecStartDate, Blank());
+        Set(varV4PrecEndDate, Blank());
+        If(varTemplateMode = "new",
+            Set(reg_template, Blank());
+            Concurrent(
+                ClearCollect(col_ordertask, Filter(Template_Task, ID = 0)),
+                ClearCollect(colSubTasksNoTemplate, Filter(Template_SubTask, ID = 0)),
+                ClearCollect(col_precedentes, Filter(Template_Precedente_DEV, ID = 0)),
+                ClearCollect(colSubTasksCatalog, Filter(Sub_task, ID = 0)),
+                ClearCollect(colPrecTasksCatalog, Filter(Template_Task, ID = 0)),
+                ClearCollect(colPrecSubTasksCatalog, Filter(Template_SubTask, ID = 0))
+            );
+            ClearCollect(colPrecFlat, Filter(col_ordertask, ID = 0)),
+            ClearCollect(col_ordertask, Filter(Template_Task, template_idf = reg_template.ID));
+            ClearCollect(colSubTasksNoTemplate, Filter(Template_SubTask, template_idf = reg_template.ID));
+            ClearCollect(col_precedentes, Filter(Template_Precedente_DEV, template_idf = reg_template.ID));
+            ClearCollect(colSubTasksCatalog, Filter(Sub_task, ID = 0));
+            ClearCollect(colPrecTasksCatalog, Filter(Template_Task, ID = 0));
+            ClearCollect(colPrecSubTasksCatalog, Filter(Template_SubTask, ID = 0));
+            ClearCollect(colPrecFlat,
+                AddColumns(col_ordertask,
+                    tipo, "task",
+                    displayName, TaskName,
+                    ordemSort, OrdemTask * 100,
+                    subRef, ""));
+            Collect(colPrecFlat,
+                AddColumns(colSubTasksNoTemplate,
+                    tipo, "subtask",
+                    displayName, SubTaskName,
+                    ordemSort, LookUp(col_ordertask, task_idf = task_idf).OrdemTask * 100 + OrdemSubTask,
+                    subRef, LookUp(col_ordertask, task_idf = task_idf).TaskName))
+        );
+        Set(varEditTaskID, 0);
+        Set(varEditStartDate, Blank());
+        Set(varEditEndDate, Blank());
+        Set(varEditSubTaskID, 0);
+        Set(varEditSubStartDate, Blank());
+        Set(varEditSubEndDate, Blank());
+        Set(varDuplicateDialogOpen, false);
+        Set(varDuplicateName, "");
+        ClearCollect(colDupTasks, Filter(Template_Task, ID = 0));
+        ClearCollect(colDupSubTasks, Filter(Template_SubTask, ID = 0));
+        ClearCollect(colDupPrecs, Filter(Template_Precedente_DEV, ID = 0))
+    Children:
+      - rect_s0_overlay_9:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 0, 0, 0)
+            Fill: =RGBA(0, 20, 50, 0.55)
+            Height: =App.Height
+            Visible: =varCompositionOpen
+            Width: =App.ActiveScreen.Width
+      - cnt_popup_35:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.Bold
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =App.ActiveScreen.Height * 0.94
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            Visible: =varCompositionOpen
+            Width: =App.ActiveScreen.Width * 0.92
+            X: =App.ActiveScreen.Width * 0.04
+            Y: =App.ActiveScreen.Height * 0.03
+          Children:
+            - cnt_header_10:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(0, 45, 85, 1)
+                  Height: =108
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =cnt_popup_35.Width
+                Children:
+                  - lbl_header_icon_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Center
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =36
+                        Size: =18
+                        Text: ="◈"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =36
+                        X: =20
+                        Y: =16
+                  - lbl_header_title_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Start
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =26
+                        Size: =16
+                        Text: |-
+                          =If(varTemplateMode = "new",
+                              "New Template",
+                              Coalesce(reg_template.Name, "Template"))
+                        VerticalAlign: =VerticalAlign.Middle
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =500
+                        X: =64
+                        Y: =16
+                  - lbl_header_status_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderThickness: =0
+                        Color: |-
+                          =If(
+                              reg_template.Status.Value = "Published",
+                              RGBA(128, 223, 176, 1),
+                              RGBA(255, 191, 128, 1)
+                          )
+                        DisplayMode: =DisplayMode.View
+                        Fill: |-
+                          =If(
+                              reg_template.Status.Value = "Published",
+                              RGBA(26, 122, 74, 0.35),
+                              RGBA(199, 91, 0, 0.35)
+                          )
+                        Height: =22
+                        RadiusBottomLeft: =20
+                        RadiusBottomRight: =20
+                        RadiusTopLeft: =20
+                        RadiusTopRight: =20
+                        Size: =11
+                        Text: =Coalesce(reg_template.Status.Value, "—")
+                        Visible: =reg_template.ID > 0
+                        Width: =110
+                        X: =64
+                        Y: =44
+                  - btn_header_close_10:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        BorderColor: =RGBA(255, 255, 255, 0.12)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Height: =30
+                        Icon: =Icon.CancelBadge
+                        OnSelect: |-
+                          =Set(varEditTaskID, 0);
+                          Set(varEditStartDate, Blank());
+                          Set(varEditEndDate, Blank());
+                          Set(varEditSubTaskID, 0);
+                          Set(varEditSubStartDate, Blank());
+                          Set(varEditSubEndDate, Blank());
+                          Set(varCompositionOpen, false);
+                          Set(varTemplateMode, "");
+                          Set(varCompStep_, 1);
+                          Set(varSelectedTaskNode, Blank());
+                          Set(varEditTaskNode, Blank());
+                          Set(varSelectedPrecType, "");
+                          Set(varV4View, "tree");
+                          Navigate(Template_Screen)
+                        Width: =30
+                        X: =cnt_popup_35.Width - 44
+                        Y: =16
+                  - lbl_meta_bu_label_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 0.45)
+                        Height: =14
+                        Size: =9
+                        Text: ="BUSINESS UNIT"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =140
+                        X: =20
+                        Y: =72
+                  - lbl_meta_bu_value_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =18
+                        Size: =12
+                        Text: |-
+                          =Coalesce(
+                              LookUp(BusinessUnit, ID = reg_template.BusinessUnit_ID).Name,
+                              reg_template.bussinesunit_desc
+                          )
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =140
+                        X: =20
+                        Y: =86
+                  - lbl_meta_start_label_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 0.45)
+                        Height: =14
+                        Size: =9
+                        Text: ="START DATE"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =100
+                        X: =175
+                        Y: =72
+                  - lbl_meta_start_value_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(168, 212, 240, 1)
+                        Height: =18
+                        Size: =11
+                        Text: =Text(reg_template.StartDate, "dd/mm/yyyy")
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =100
+                        X: =175
+                        Y: =86
+                  - lbl_meta_end_label_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 0.45)
+                        Height: =14
+                        Size: =9
+                        Text: ="END DATE"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =100
+                        X: =290
+                        Y: =72
+                  - lbl_meta_end_value_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(168, 212, 240, 1)
+                        Height: =18
+                        Size: =11
+                        Text: =Text(reg_template.EndDate, "dd/mm/yyyy")
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =100
+                        X: =290
+                        Y: =86
+                  - lbl_meta_duration_label_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 0.45)
+                        Height: =14
+                        Size: =9
+                        Text: ="DURATION"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =120
+                        X: =405
+                        Y: =72
+                  - lbl_meta_duration_value_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(168, 212, 240, 1)
+                        Height: =18
+                        Size: =11
+                        Text: |-
+                          =Text(DateDiff(reg_template.StartDate, reg_template.EndDate, TimeUnit.Days)) & "d (~" &
+                          Text(Round(DateDiff(reg_template.StartDate, reg_template.EndDate, TimeUnit.Months), 0)) & "mo)"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =120
+                        X: =405
+                        Y: =86
+                  - lbl_meta_tasks_label_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 0.45)
+                        Height: =14
+                        Size: =9
+                        Text: ="TASKS"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =80
+                        X: =540
+                        Y: =72
+                  - lbl_meta_tasks_value_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =18
+                        Size: =12
+                        Text: =Text(CountRows(col_ordertask)) & " tasks"
+                        Visible: =varTemplateMode = "edit"
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =80
+                        X: =540
+                        Y: =86
+            - cnt_stepper_10:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(248, 250, 252, 1)
+                  Height: =56
+                  Width: =cnt_popup_35.Width
+                  Y: =108
+                Children:
+                  - btn_step_definition_8:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: |-
+                          =If(varCompStep_ = 1, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 1, RGBA(26, 122, 74, 1),
+                              RGBA(226, 232, 240, 1)))
+                        BorderThickness: =3
+                        Color: |-
+                          =If(varCompStep_ = 1, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 1, RGBA(26, 122, 74, 1),
+                              RGBA(100, 116, 139, 1)))
+                        Fill: |-
+                          =If(varCompStep_ = 1, RGBA(240, 247, 253, 1),
+                              If(varCompStep_ > 1, RGBA(232, 245, 238, 1),
+                              RGBA(248, 250, 252, 1)))
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =56
+                        HoverBorderColor: =RGBA(0, 103, 176, 1)
+                        HoverColor: =RGBA(0, 103, 176, 1)
+                        HoverFill: =RGBA(240, 247, 253, 1)
+                        OnSelect: =Set(varCompStep_, 1)
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =12
+                        Text: =If(varCompStep_ > 1, "✅  ", "1  ") & "Template Definition"
+                        Width: =265
+                  - btn_step_tasks_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: |-
+                          =If(varCompStep_ = 2, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 2, RGBA(26, 122, 74, 1),
+                              RGBA(226, 232, 240, 1)))
+                        BorderThickness: =3
+                        Color: |-
+                          =If(varCompStep_ = 2, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 2, RGBA(26, 122, 74, 1),
+                              RGBA(100, 116, 139, 1)))
+                        DisplayMode: |-
+                          =If(varCompStep_ >= 2,
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        Fill: |-
+                          =If(varCompStep_ = 2, RGBA(240, 247, 253, 1),
+                              If(varCompStep_ > 2, RGBA(232, 245, 238, 1),
+                              RGBA(248, 250, 252, 1)))
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =56
+                        HoverBorderColor: =RGBA(0, 103, 176, 1)
+                        HoverColor: =RGBA(0, 103, 176, 1)
+                        HoverFill: =RGBA(240, 247, 253, 1)
+                        OnSelect: =Set(varCompStep_, 2)
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =12
+                        Text: =If(varCompStep_ > 2, "✅  ", "2  ") & "Add Tasks"
+                        Width: =265
+                        X: =265
+                  - btn_step_subtasks_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: |-
+                          =If(varCompStep_ = 3, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 3, RGBA(26, 122, 74, 1),
+                              RGBA(226, 232, 240, 1)))
+                        BorderThickness: =3
+                        Color: |-
+                          =If(varCompStep_ = 3, RGBA(0, 103, 176, 1),
+                              If(varCompStep_ > 3, RGBA(26, 122, 74, 1),
+                              RGBA(100, 116, 139, 1)))
+                        DisplayMode: |-
+                          =If(varCompStep_ >= 3,
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        Fill: |-
+                          =If(varCompStep_ = 3, RGBA(240, 247, 253, 1),
+                              If(varCompStep_ > 3, RGBA(232, 245, 238, 1),
+                              RGBA(248, 250, 252, 1)))
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =56
+                        HoverBorderColor: =RGBA(0, 103, 176, 1)
+                        HoverColor: =RGBA(0, 103, 176, 1)
+                        HoverFill: =RGBA(240, 247, 253, 1)
+                        OnSelect: =Set(varCompStep_, 3)
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =12
+                        Text: =If(varCompStep_ > 3, "✅  ", "3  ") & "Add SubTasks"
+                        Width: =265
+                        X: =530
+                  - btn_step_precedences_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =If(varCompStep_ = 4, RGBA(0, 103, 176, 1), RGBA(226, 232, 240, 1))
+                        BorderThickness: =3
+                        Color: =If(varCompStep_ = 4, RGBA(0, 103, 176, 1), RGBA(100, 116, 139, 1))
+                        DisplayMode: |-
+                          =If(varCompStep_ >= 4,
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        Fill: =If(varCompStep_ = 4, RGBA(240, 247, 253, 1), RGBA(248, 250, 252, 1))
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =56
+                        HoverBorderColor: =RGBA(0, 103, 176, 1)
+                        HoverColor: =RGBA(0, 103, 176, 1)
+                        HoverFill: =RGBA(240, 247, 253, 1)
+                        OnSelect: =Set(varCompStep_, 4)
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =12
+                        Text: ="4  Set Precedences"
+                        Width: =265
+                        X: =795
+            - cnt_s1_infobar_8:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(184, 217, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(240, 247, 253, 1)
+                  Height: =36
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  Visible: =varCompStep_ = 1
+                  Width: =cnt_popup_35.Width
+                  X: =0.7200000000000273
+                  Y: =174
+                Children:
+                  - lbl_s1_infobar_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(0, 74, 128, 1)
+                        Height: =36
+                        Size: =11
+                        Text: ="ℹ️  Fill template details, then save to add tasks."
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =1012
+                        X: =4
+            - cnt_s1_basic_8:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =180
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Visible: =varCompStep_ = 1
+                  Width: =cnt_popup_35.Width
+                  X: =0.7200000000000273
+                  Y: =218
+                Children:
+                  - cnt_s1_basic_header_8:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(226, 232, 240, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(248, 250, 252, 1)
+                        Height: =36
+                        Width: =1020
+                  - lbl_s1_basic_header_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(51, 65, 85, 1)
+                        Height: =36
+                        Size: =12
+                        Text: ="◈  Basic Information"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =400
+                        X: =12
+                  - lbl_s1_name_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(100, 116, 139, 1)
+                        Height: =16
+                        Size: =10
+                        Text: ="TEMPLATE NAME  *"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =460
+                        X: =16
+                        Y: =48
+                  - inp_s1_name_8:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        BorderColor: =RGBA(203, 213, 225, 1)
+                        Default: =reg_template.Name
+                        FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Open Sans'
+                        Height: =38
+                        HoverBorderColor: =RGBA(148, 163, 184, 1)
+                        MaxLength: =40
+                        Width: =460
+                        X: =16
+                        Y: =66
+                  - lbl_s1_status_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(100, 116, 139, 1)
+                        Height: =16
+                        Size: =10
+                        Text: ="STATUS  *"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =240
+                        X: =492
+                        Y: =48
+                  - cbb_s1_status_8:
+                      Control: Classic/ComboBox@2.4.0
+                      Properties:
+                        BorderColor: =RGBA(203, 213, 225, 1)
+                        DefaultSelectedItems: |-
+                          =If(
+                              varTemplateMode = "new",
+                              {Value: "Development"},
+                              {Value: reg_template.Status.Value}
+                          )
+                        DisplayFields: =["Value"]
+                        FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Open Sans'
+                        Height: =38
+                        InputTextPlaceholder: ="Select…"
+                        IsSearchable: =false
+                        Items: |-
+                          =Table(
+                              {Value: "Development"},
+                              {Value: "Published"},
+                              {Value: "Cancelled"}
+                          )
+                        SearchFields: =["Value"]
+                        SelectMultiple: =false
+                        Width: =240
+                        X: =492
+                        Y: =66
+                  - lbl_s1_bu_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(100, 116, 139, 1)
+                        Height: =16
+                        Size: =10
+                        Text: ="BUSINESS UNIT  *"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =240
+                        X: =748
+                        Y: =48
+                  - cbb_s1_bu_8:
+                      Control: Classic/ComboBox@2.4.0
+                      Properties:
+                        BorderColor: =RGBA(203, 213, 225, 1)
+                        DefaultSelectedItems: |-
+                          =If(
+                              varTemplateMode = "new",
+                              Blank(),
+                              First(Filter(BusinessUnit, ID = reg_template.BusinessUnit_ID))
+                          )
+                        DisplayFields: =["Name"]
+                        FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Open Sans'
+                        Height: =38
+                        InputTextPlaceholder: ="Select…"
+                        Items: =Sort(BusinessUnit, Name, SortOrder.Ascending)
+                        SearchFields: =["Name"]
+                        SelectMultiple: =false
+                        Width: =240
+                        X: =748
+                        Y: =66
+            - cnt_s1_timeline_8:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =120
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Visible: =varCompStep_ = 1
+                  Width: =cnt_popup_35.Width
+                  X: =0.7200000000000273
+                  Y: =418
+                Children:
+                  - cnt_s1_timeline_header_8:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(226, 232, 240, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(248, 250, 252, 1)
+                        Height: =36
+                        Width: =1020
+                  - lbl_s1_timeline_header_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(51, 65, 85, 1)
+                        Height: =36
+                        Size: =12
+                        Text: |-
+                          ="📅  Timeline"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =400
+                        X: =12
+                  - lbl_s1_start_date_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(100, 116, 139, 1)
+                        Height: =16
+                        Size: =10
+                        Text: ="START DATE  *"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =240
+                        X: =16
+                        Y: =48
+                  - dp_s1_start_date_8:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        BorderColor: =RGBA(203, 213, 225, 1)
+                        Format: =DateTimeFormat.ShortDate
+                        Height: =38
+                        SelectedDate: =reg_template.StartDate
+                        Width: =240
+                        X: =16
+                        Y: =66
+                  - lbl_s1_end_date_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(100, 116, 139, 1)
+                        Height: =16
+                        Size: =10
+                        Text: ="END DATE  *"
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =240
+                        X: =272
+                        Y: =48
+                  - dp_s1_end_date_8:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        BorderColor: =RGBA(203, 213, 225, 1)
+                        Format: =DateTimeFormat.ShortDate
+                        Height: =38
+                        SelectedDate: =reg_template.EndDate
+                        Width: =240
+                        X: =272
+                        Y: =66
+            - btn_s1_save_8:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(inp_s1_name_8.Text) ||
+                        IsBlank(cbb_s1_bu_8.Selected) ||
+                        IsBlank(dp_s1_start_date_8.SelectedDate) ||
+                        IsBlank(dp_s1_end_date_8.SelectedDate),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Fill: =RGBA(0, 103, 176, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =RGBA(0, 74, 128, 1)
+                  OnSelect: |-
+                    =With(
+                        {vRecord: If(varTemplateMode = "new", Defaults(Templates), reg_template)},
+                        Set(reg_template,
+                            Patch(Templates, vRecord, {
+                                Name: inp_s1_name_8.Text,
+                                Status: {Value: Coalesce(cbb_s1_status_8.Selected.Value, "Development")},
+                                bussinesunit_desc: cbb_s1_bu_8.Selected.Name,
+                                BusinessUnit_ID: cbb_s1_bu_8.Selected.ID,
+                                StartDate: dp_s1_start_date_8.SelectedDate,
+                                EndDate: dp_s1_end_date_8.SelectedDate
+                            })
+                        );
+                        If(IsError(reg_template) || reg_template.ID = 0,
+                            Set(reg_template, Blank());
+                            Notify("❌ Error saving template definition.", NotificationType.Error),
+                            If(varTemplateMode = "new",
+                                Set(varTemplateMode, "edit");
+                                ClearCollect(col_ordertask,
+                                    Filter(Template_Task, template_idf = reg_template.ID));
+                                Notify("✅ Template saved! Now add tasks.", NotificationType.Success, 2500);
+                                Set(varCompStep_, 2);
+                                Set(varSelectedTaskNode, Blank()),
+                                Notify("✅ Template updated successfully.", NotificationType.Success, 2500)
+                            )
+                        )
+                    )
+                  PressedFill: =RGBA(0, 74, 128, 0.8)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =13
+                  Text: |-
+                    =If(varTemplateMode = "new",
+                        "💾  Save & Go to Tasks  →",
+                        "💾  Save Changes")
+                  Visible: =varCompStep_ = 1
+                  Width: =cnt_popup_35.Width
+                  X: =0.7200000000000273
+                  Y: =558
+            - cnt_s2_left_header_10:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(248, 250, 252, 1)
+                  Height: =48
+                  Visible: =varCompStep_ >= 2
+                  Width: =424
+                  Y: =164
+            - lbl_panel_title_10:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Start
+                  FontColor: =RGBA(51, 65, 85, 1)
+                  Height: =22
+                  Size: =13
+                  Text: |-
+                    =Switch(varCompStep_,
+                        2, If(!IsBlank(varEditTaskNode), "✏️  Edit Task", "Add Task"),
+                        3, "Add SubTask",
+                        4, "Set Precedence"
+                    )
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ >= 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =280
+                  X: =18
+                  Y: =177
+            - lbl_panel_subtitle_10:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Start
+                  FontColor: =RGBA(148, 163, 184, 1)
+                  Height: =18
+                  Size: =11
+                  Text: |-
+                    =Switch(varCompStep_,
+                        2, "Already added tasks are hidden from the list",
+                        3, "Select a task on the right, then add subtasks",
+                        4, "Select a task on the right, then define its dependency"
+                    )
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ >= 2
+                  Width: =400
+                  X: =18
+                  Y: =196
+            - lbl_template_limit_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(0, 74, 128, 1)
+                  Size: =11
+                  Text: |-
+                    ="📅  Template limit: " & Text(reg_template.EndDate, "dd/mm/yyyy")
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 2 || varCompStep_ = 3
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =384
+                  X: =20
+                  Y: =214
+            - lbl_s2_fa_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="FUNCTIONAL AREA  *"
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =266
+            - cbb_s2_functional_area_10:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayFields: =["NameArea"]
+                  FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  Height: =38
+                  InputTextPlaceholder: ="Select…"
+                  Items: |-
+                    =Filter(AreaFuncional,
+                        BusinessUnit_ID = cbb_s1_bu_8.Selected.ID
+                    )
+                  OnChange: =Reset(cbb_s2_task_10)
+                  SearchFields: =["BusinessUnit_Area"]
+                  SelectMultiple: =false
+                  Visible: =varCompStep_ = 2
+                  Width: =384
+                  X: =20
+                  Y: =284
+            - lbl_s2_task_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="TASK  *"
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =334
+            - lbl_s2_start_date_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="START DATE  *"
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =20
+                  Y: =402
+            - lbl_s2_end_date_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="END DATE  *"
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =219
+                  Y: =402
+            - lbl_s2_milestone_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(51, 65, 85, 1)
+                  Height: =20
+                  Size: =12
+                  Text: ="⭐  Milestone"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =200
+                  X: =20
+                  Y: =470
+            - btn_tog_milestone_7:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =If(varTogMilestone, RGBA(0, 103, 176, 1), RGBA(203, 213, 225, 1))
+                  Color: =If(varTogMilestone, RGBA(255, 255, 255, 1), RGBA(148, 163, 184, 1))
+                  Fill: =If(varTogMilestone, RGBA(0, 103, 176, 1), RGBA(241, 245, 249, 1))
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  HoverFill: =If(varTogMilestone, RGBA(0, 74, 128, 1), RGBA(226, 232, 240, 1))
+                  OnSelect: =Set(varTogMilestone, !varTogMilestone)
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Size: =10
+                  Text: =If(varTogMilestone, "ON", "OFF")
+                  Visible: =varCompStep_ = 2
+                  Width: =50
+                  X: =330
+                  Y: =466
+            - lbl_s2_visible_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(51, 65, 85, 1)
+                  Height: =20
+                  Size: =12
+                  Text: |-
+                    ="👁  Visible to Customer"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 2
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =200
+                  X: =20
+                  Y: =504
+            - btn_tog_visible_7:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =If(varTogVisible, RGBA(26, 122, 74, 1), RGBA(203, 213, 225, 1))
+                  Color: =If(varTogVisible, RGBA(255, 255, 255, 1), RGBA(148, 163, 184, 1))
+                  Fill: =If(varTogVisible, RGBA(26, 122, 74, 1), RGBA(241, 245, 249, 1))
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  HoverFill: =If(varTogVisible, RGBA(20, 95, 57, 1), RGBA(226, 232, 240, 1))
+                  OnSelect: =Set(varTogVisible, !varTogVisible)
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Size: =10
+                  Text: =If(varTogVisible, "ON", "OFF")
+                  Visible: =varCompStep_ = 2
+                  Width: =50
+                  X: =330
+                  Y: =500
+            - btn_s2_add_task_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: |-
+                    =If(
+                        reg_template.ID = 0 ||
+                        IsBlank(cbb_s2_functional_area_10.Selected) ||
+                        IsBlank(cbb_s2_task_10.Selected) ||
+                        IsBlank(dp_s2_start_date_10.SelectedDate) ||
+                        IsBlank(dp_s2_end_date_10.SelectedDate),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Fill: =If(IsBlank(varEditTaskNode), RGBA(26, 122, 74, 1), RGBA(0, 103, 176, 1))
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =36
+                  HoverFill: =If(IsBlank(varEditTaskNode), RGBA(20, 95, 57, 1), RGBA(0, 74, 128, 1))
+                  OnSelect: |-
+                    =If(IsBlank(varEditTaskNode),
+                        With(
+                            {vNextOrder: Coalesce(
+                                First(SortByColumns(
+                                    Filter(Template_Task, template_idf = reg_template.ID),
+                                    "OrdemTask", SortOrder.Descending
+                                )).OrdemTask + 1,
+                                1)},
+                            With(
+                                {rTask: IfError(
+                                    Patch(Template_Task, Defaults(Template_Task), {
+                                        TemplateName: reg_template.Name,
+                                        functional_area: cbb_s2_functional_area_10.Selected.NameArea,
+                                        functional_area_id: cbb_s2_functional_area_10.Selected.ID,
+                                        template_idf: reg_template.ID,
+                                        TaskName: cbb_s2_task_10.Selected.Name,
+                                        task_idf: cbb_s2_task_10.Selected.ID,
+                                        OrdemTask: vNextOrder,
+                                        StartDate: dp_s2_start_date_10.SelectedDate,
+                                        EndDate: dp_s2_end_date_10.SelectedDate,
+                                        IsMilestone: varTogMilestone,
+                                        IsVisible: varTogVisible,
+                                        Status: { Value: "Active" }
+                                    }),
+                                    Blank()
+                                )},
+                                If(IsBlank(rTask),
+                                    Notify("❌ Error creating Task.", NotificationType.Error),
+                                    Notify("✅ Task added successfully!", NotificationType.Success, 2500);
+                                    ClearCollect(col_ordertask,
+                                        Filter(Template_Task, template_idf = reg_template.ID)
+                                    );
+                                    Reset(cbb_s2_functional_area_10);
+                                    Reset(cbb_s2_task_10);
+                                    Reset(dp_s2_start_date_10);
+                                    Reset(dp_s2_end_date_10);
+                                    Set(varTogMilestone, false);
+                                    Set(varTogVisible, true);
+                                    Set(varV4TaskEndDate, Blank())
+                                )
+                            )
+                        )//;
+                        /*With(
+                            {rEdit: IfError(
+                                Patch(Template_Task; varEditTaskNode; {
+                                    StartDate: dp_s2_start_date_4.SelectedDate;
+                                    EndDate: dp_s2_end_date_4.SelectedDate;
+                                    IsMilestone: varTogMilestone;
+                                    IsVisible: varTogVisible
+                                });
+                                Blank()
+                            )};
+                            If(IsBlank(rEdit);
+                                Notify("❌ Error updating Task."; NotificationType.Error);
+                                Notify("✅ Task updated successfully!"; NotificationType.Success; 2500);;
+                                ClearCollect(col_ordertask;
+                                    Filter(Template_Task; template_idf = reg_template.ID)
+                                );;
+                                Set(varEditTaskNode; Blank());;
+                                Reset(cbb_s2_functional_area_4);;
+                                Reset(cbb_s2_task_4);;
+                                Reset(dp_s2_start_date_4);;
+                                Reset(dp_s2_end_date_4);;
+                                Set(varTogMilestone; false);;
+                                Set(varTogVisible; true);;
+                                Set(varV4TaskEndDate; Blank())
+                            )
+                        )*/
+                    )
+                  PressedFill: =If(IsBlank(varEditTaskNode), RGBA(20, 95, 57, 0.8), RGBA(0, 74, 128, 0.8))
+                  RadiusBottomLeft: =7
+                  RadiusBottomRight: =7
+                  RadiusTopLeft: =7
+                  RadiusTopRight: =7
+                  Size: =12
+                  Text: |-
+                    =If(IsBlank(varEditTaskNode), "＋  Add Task", "💾  Save Task")
+                  Visible: =varCompStep_ = 2
+                  Width: =384
+                  X: =20
+                  Y: =540
+            - btn_s2_cancel_edit_7:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1.5
+                  Color: =RGBA(100, 116, 139, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =28
+                  HoverBorderColor: =RGBA(148, 163, 184, 1)
+                  HoverFill: =RGBA(248, 250, 252, 1)
+                  OnSelect: |-
+                    =Set(varEditTaskNode, Blank());
+                    Reset(cbb_s2_functional_area_10);
+                    Reset(cbb_s2_task_10);
+                    Reset(dp_s2_start_date_10);
+                    Reset(dp_s2_end_date_10);
+                    Set(varTogMilestone, false);
+                    Set(varTogVisible, true);
+                    Set(varV4TaskEndDate, Blank())
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  Size: =11
+                  Text: ="✕  Cancel Edit"
+                  Visible: =varCompStep_ = 2 && !IsBlank(varEditTaskNode)
+                  Width: =384
+                  X: =20
+                  Y: =582
+            - lbl_s3_selection_indicator_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: |-
+                    =If(varSelectedTaskNode.ID = 0,
+                        RGBA(192, 57, 43, 1),
+                        RGBA(0, 74, 128, 1))
+                  Height: =36
+                  Size: =12
+                  Text: |-
+                    =If(varSelectedTaskNode.ID = 0,
+                        "←  Select a Task in the right panel to add SubTasks",
+                        "✓  Task selected: " & varSelectedTaskNode.TaskName)
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 3
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =384
+                  X: =20
+                  Y: =240
+            - lbl_s3_subtask_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="SUBTASK  *"
+                  Visible: =varCompStep_ = 3
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =274
+            - cbb_s3_subtask_10:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayFields: =["description"]
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  Height: =38
+                  InputTextPlaceholder: ="Select task first…"
+                  IsSearchable: =false
+                  Items: |-
+                    =Filter(
+                        colSubTasksCatalog,
+                        task_idf = varSelectedTaskNode.task_idf
+                        && !IsBlank(name)
+                        && !(ID in colSubTasksNoTemplate.subtask_idf)
+                    )
+                  OnChange: |-
+                    =If(
+                        !IsBlank(Self.Selected) && !IsBlank(dp_s3_start_date_10.SelectedDate),
+                        Set(varV4SubEndDate,
+                            DateAdd(dp_s3_start_date_10.SelectedDate,
+                                Self.Selected.durationindays - 1,
+                                TimeUnit.Days))
+                    )
+                  SearchFields: =["ComplianceAssetId"]
+                  SelectMultiple: =false
+                  Visible: =varCompStep_ = 3
+                  Width: =384
+                  X: =20
+                  Y: =292
+            - lbl_s3_start_date_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="START DATE  *"
+                  Visible: =varCompStep_ = 3
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =20
+                  Y: =344
+            - lbl_s3_end_date_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="END DATE  *"
+                  Visible: =varCompStep_ = 3
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =219
+                  Y: =344
+            - dp_s3_start_date_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: |-
+                    =If(!IsBlank(Self.SelectedDate) && !IsBlank(cbb_s3_subtask_10.Selected),
+                        Set(varV4SubEndDate,
+                            DateAdd(Self.SelectedDate,
+                                cbb_s3_subtask_10.Selected.durationindays - 1,
+                                TimeUnit.Days))
+                    )
+                  SelectedDate: =varSelectedTaskNode.StartDate
+                  Visible: =varCompStep_ = 3
+                  Width: =185
+                  X: =20
+                  Y: =362
+            - dp_s3_end_date_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: |-
+                    =If(
+                        !IsBlank(Self.SelectedDate),
+                        If(Self.SelectedDate > reg_template.EndDate,
+                            Notify("⚠️ End date exceeds the template limit.", NotificationType.Warning, 3000);
+                            Reset(Self),
+                            If(!IsBlank(dp_s3_start_date_10.SelectedDate) && Self.SelectedDate < dp_s3_start_date_10.SelectedDate,
+                                Notify("End date cannot be earlier than start date.", NotificationType.Warning, 3000);
+                                Reset(Self)
+                            )
+                        )
+                    )
+                  SelectedDate: =Coalesce(varV4SubEndDate, varSelectedTaskNode.EndDate)
+                  Visible: =varCompStep_ = 3
+                  Width: =185
+                  X: =219
+                  Y: =362
+            - btn_s3_add_subtask_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: |-
+                    =If(
+                        varSelectedTaskNode.ID = 0 ||
+                        IsBlank(cbb_s3_subtask_10.Selected) ||
+                        IsBlank(dp_s3_start_date_10.SelectedDate) ||
+                        IsBlank(dp_s3_end_date_10.SelectedDate),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Fill: =RGBA(26, 122, 74, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =36
+                  HoverFill: =RGBA(20, 95, 57, 1)
+                  OnSelect: |-
+                    =With(
+                        {
+                            vNextOrderSub: CountRows(Filter(Template_SubTask,
+                                task_idf = varSelectedTaskNode.task_idf)) + 1
+                        },
+                        If(
+                            IsError(Patch(Template_SubTask, Defaults(Template_SubTask), {
+                                SubTaskName: cbb_s3_subtask_10.Selected.name,
+                                subtask_idf: cbb_s3_subtask_10.Selected.ID,
+                                durationindays: cbb_s3_subtask_10.Selected.durationindays,
+                                StartDate: dp_s3_start_date_10.SelectedDate,
+                                EndDate: dp_s3_end_date_10.SelectedDate,
+                                function_area_idf: varSelectedTaskNode.functional_area_id,
+                                template_idf: reg_template.ID,
+                                task_idf: varSelectedTaskNode.task_idf,
+                                OrdemSubTask: vNextOrderSub,
+                                Status: { Value: "Active" }
+                            })),
+                            Notify("❌ Error creating SubTask.", NotificationType.Error),
+                            Notify("✅ SubTask added successfully!", NotificationType.Success, 2500);
+                            Reset(cbb_s3_subtask_10);
+                            Reset(dp_s3_start_date_10);
+                            Reset(dp_s3_end_date_10);
+                            ClearCollect(colSubTasksNoTemplate,
+                                Filter(Template_SubTask, template_idf = reg_template.ID))
+                        )
+                    )
+                  PressedFill: =RGBA(20, 95, 57, 0.8)
+                  RadiusBottomLeft: =7
+                  RadiusBottomRight: =7
+                  RadiusTopLeft: =7
+                  RadiusTopRight: =7
+                  Size: =12
+                  Text: ="＋  Add SubTask"
+                  Visible: =varCompStep_ = 3
+                  Width: =384
+                  X: =20
+                  Y: =420
+            - lbl_s3_subtasks_added_title_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: |-
+                    ="SUBTASKS ADDED" &
+                    If(varSelectedTaskNode.ID > 0,
+                        " — " & varSelectedTaskNode.TaskName,
+                        "")
+                  Visible: =varCompStep_ = 3 && CountRows(colSubTasksNoTemplate) > 0
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =468
+            - gal_s3_subtask_list_7:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Height: =168
+                  Items: |-
+                    =Sort(
+                        Filter(colSubTasksNoTemplate,
+                            task_idf = varSelectedTaskNode.task_idf),
+                        OrdemSubTask,
+                        SortOrder.Ascending)
+                  LoadingSpinner: =LoadingSpinner.None
+                  TemplatePadding: =4
+                  TemplateSize: =88
+                  Visible: =varCompStep_ = 3 && CountRows(Filter(colSubTasksNoTemplate, task_idf = varSelectedTaskNode.task_idf)) > 0
+                  Width: =384
+                  X: =20
+                  Y: =468
+                Children:
+                  - cnt_sub_card_7:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderColor: |-
+                          =If(varEditSubTaskID = ThisItem.ID,
+                              RGBA(199, 91, 0, 1),
+                              RGBA(226, 232, 240, 1))
+                        BorderThickness: =1.5
+                        DropShadow: =DropShadow.None
+                        Fill: |-
+                          =If(varEditSubTaskID = ThisItem.ID,
+                              RGBA(255, 252, 245, 1),
+                              RGBA(255, 255, 255, 1))
+                        Height: =82
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =376
+                      Children:
+                        - lbl_sub_name_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(15, 23, 42, 1)
+                              Height: =18
+                              Size: =11
+                              Text: |-
+                                =Coalesce(
+                                    LookUp(colSubTasksCatalog, ID = ThisItem.subtask_idf).description,
+                                    ThisItem.SubTaskName)
+                              VerticalAlign: =VerticalAlign.Middle
+                              Weight: ='TextCanvas.Weight'.Semibold
+                              Width: =232
+                              X: =8
+                              Y: =6
+                        - lbl_sub_task_ref_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(148, 163, 184, 1)
+                              Height: =14
+                              Size: =9
+                              Text: |-
+                                ="↳ " & Coalesce(
+                                    LookUp(col_ordertask, task_idf = ThisItem.task_idf).TaskName,
+                                    "")
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =280
+                              X: =8
+                              Y: =26
+                        - btn_sub_order_up_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(226, 232, 240, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(100, 116, 139, 1)
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(
+                                    ThisItem.OrdemSubTask = Min(
+                                        Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf),
+                                        OrdemSubTask) ||
+                                    (varEditSubTaskID > 0 && varEditSubTaskID <> ThisItem.ID),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        vThisOrdem: ThisItem.OrdemSubTask,
+                                        vAboveItem: LookUp(colSubTasksNoTemplate,
+                                            OrdemSubTask = ThisItem.OrdemSubTask - 1 &&
+                                            task_idf = ThisItem.task_idf)
+                                    },
+                                    If(!IsBlank(vAboveItem),
+                                        Patch(Template_SubTask,
+                                            LookUp(Template_SubTask, ID = vAboveItem.ID),
+                                            {OrdemSubTask: vThisOrdem});
+                                        Patch(Template_SubTask,
+                                            LookUp(Template_SubTask, ID = ThisItem.ID),
+                                            {OrdemSubTask: vAboveItem.OrdemSubTask});
+                                        ClearCollect(colSubTasksNoTemplate,
+                                            Filter(Template_SubTask, template_idf = reg_template.ID));
+                                        Notify("✅ Order updated.", NotificationType.Success, 1500)
+                                    )
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =10
+                              Text: ="▲"
+                              Width: =22
+                              X: =248
+                              Y: =6
+                        - btn_sub_order_down_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(226, 232, 240, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(100, 116, 139, 1)
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(
+                                    ThisItem.OrdemSubTask = Max(
+                                        Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf),
+                                        OrdemSubTask) ||
+                                    (varEditSubTaskID > 0 && varEditSubTaskID <> ThisItem.ID),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        vThisOrdem: ThisItem.OrdemSubTask,
+                                        vBelowItem: LookUp(colSubTasksNoTemplate,
+                                            OrdemSubTask = ThisItem.OrdemSubTask + 1 &&
+                                            task_idf = ThisItem.task_idf)
+                                    },
+                                    If(!IsBlank(vBelowItem),
+                                        Patch(Template_SubTask,
+                                            LookUp(Template_SubTask, ID = vBelowItem.ID),
+                                            {OrdemSubTask: vThisOrdem});
+                                        Patch(Template_SubTask,
+                                            LookUp(Template_SubTask, ID = ThisItem.ID),
+                                            {OrdemSubTask: vBelowItem.OrdemSubTask});
+                                        ClearCollect(colSubTasksNoTemplate,
+                                            Filter(Template_SubTask, template_idf = reg_template.ID));
+                                        Notify("✅ Order updated.", NotificationType.Success, 1500)
+                                    )
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =10
+                              Text: ="▼"
+                              Width: =22
+                              X: =274
+                              Y: =6
+                        - btn_sub_edit_date_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: |-
+                                =If(varEditSubTaskID = ThisItem.ID,
+                                    RGBA(199, 91, 0, 1),
+                                    RGBA(226, 232, 240, 1))
+                              BorderThickness: =1
+                              Color: |-
+                                =If(varEditSubTaskID = ThisItem.ID,
+                                    RGBA(199, 91, 0, 1),
+                                    RGBA(0, 103, 176, 1))
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(varEditSubTaskID > 0 && varEditSubTaskID <> ThisItem.ID,
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: |-
+                                =If(varEditSubTaskID = ThisItem.ID,
+                                    RGBA(255, 247, 240, 1),
+                                    RGBA(255, 255, 255, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =If(varEditSubTaskID = ThisItem.ID,
+                                    Set(varEditSubTaskID, 0);
+                                    Set(varEditSubStartDate, Blank());
+                                    Set(varEditSubEndDate, Blank()),
+                                    Set(varEditSubTaskID, ThisItem.ID);
+                                    Set(varEditSubStartDate, ThisItem.StartDate);
+                                    Set(varEditSubEndDate, ThisItem.EndDate)
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =10
+                              Text: =If(varEditSubTaskID = ThisItem.ID, "✕", "✏")
+                              Width: =22
+                              X: =300
+                              Y: =6
+                        - btn_sub_delete_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: =RGBA(192, 57, 43, 1)
+                              DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(0, 0, 0, 0)
+                              DisplayMode: |-
+                                =If(varEditSubTaskID > 0,
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(253, 237, 236, 1)
+                              OnSelect: |-
+                                =If(
+                                    !IsBlank(LookUp(col_precedentes,
+                                        subtask_idf = ThisItem.ID &&
+                                        task_idf = ThisItem.task_idf)),
+                                    Notify("⚠️ Remove the precedence linked to this SubTask first.", NotificationType.Warning, 3500),
+                                    If(Confirm("Remove this SubTask?"),
+                                        If(IsError(Remove(Template_SubTask, ThisItem)),
+                                            Notify("❌ Error removing SubTask.", NotificationType.Error),
+                                            ClearCollect(colSubTasksNoTemplate,
+                                                Filter(Template_SubTask, template_idf = reg_template.ID));
+                                            Notify("✅ SubTask removed.", NotificationType.Success, 2000)
+                                        )
+                                    )
+                                )
+                              PressedFill: =RGBA(253, 237, 236, 0.8)
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: |-
+                                ="🗑"
+                              Width: =22
+                              X: =326
+                              Y: =6
+                        - lbl_sub_dates_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =18
+                              Size: =10
+                              Text: |-
+                                =Text(ThisItem.StartDate, "dd/mm/yyyy") & " → " &
+                                Text(ThisItem.EndDate, "dd/mm/yyyy") &
+                                "  (" & Text(ThisItem.durationindays) & "d)"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =varEditSubTaskID <> ThisItem.ID
+                              Width: =280
+                              X: =8
+                              Y: =47
+                        - lbl_sub_edit_start_label_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =13
+                              Size: =9
+                              Text: ="START DATE"
+                              Visible: =varEditSubTaskID = ThisItem.ID
+                              Weight: ='TextCanvas.Weight'.Bold
+                              Width: =155
+                              X: =8
+                              Y: =26
+                        - lbl_sub_edit_end_label_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =13
+                              Size: =9
+                              Text: ="END DATE"
+                              Visible: =varEditSubTaskID = ThisItem.ID
+                              Weight: ='TextCanvas.Weight'.Bold
+                              Width: =155
+                              X: =170
+                              Y: =26
+                        - dp_edit_sub_start_7:
+                            Control: DatePicker@0.0.46
+                            Properties:
+                              BorderColor: =RGBA(199, 91, 0, 1)
+                              Format: =DateTimeFormat.ShortDate
+                              Height: =34
+                              OnChange: |-
+                                =If(
+                                    !IsBlank(Self.SelectedDate),
+                                    If(
+                                        !IsBlank(varEditSubEndDate) && Self.SelectedDate > varEditSubEndDate,
+                                        Notify("Start date cannot be later than end date.", NotificationType.Warning, 3000);
+                                        Reset(Self),
+                                        Set(varEditSubStartDate, Self.SelectedDate);
+                                        If(
+                                            Self.SelectedDate < reg_template.StartDate || Self.SelectedDate > reg_template.EndDate,
+                                            Notify(
+                                                "⚠️ Start date is outside the template scope (" &
+                                                Text(reg_template.StartDate, "dd/mm/yyyy") & " – " &
+                                                Text(reg_template.EndDate, "dd/mm/yyyy") & ").",
+                                                NotificationType.Warning, 5000
+                                            )
+                                        )
+                                    )
+                                )
+                              SelectedDate: =varEditSubStartDate
+                              Visible: =varEditSubTaskID = ThisItem.ID
+                              Width: =155
+                              X: =8
+                              Y: =40
+                        - dp_edit_sub_end_7:
+                            Control: DatePicker@0.0.46
+                            Properties:
+                              BorderColor: =RGBA(199, 91, 0, 1)
+                              Format: =DateTimeFormat.ShortDate
+                              Height: =34
+                              OnChange: |-
+                                =If(
+                                    !IsBlank(Self.SelectedDate),
+                                    If(
+                                        !IsBlank(varEditSubStartDate) && Self.SelectedDate < varEditSubStartDate,
+                                        Notify("End date cannot be earlier than start date.", NotificationType.Warning, 3000);
+                                        Reset(Self),
+                                        Set(varEditSubEndDate, Self.SelectedDate);
+                                        If(
+                                            Self.SelectedDate < reg_template.StartDate || Self.SelectedDate > reg_template.EndDate,
+                                            Notify(
+                                                "⚠️ End date is outside the template scope (" &
+                                                Text(reg_template.StartDate, "dd/mm/yyyy") & " – " &
+                                                Text(reg_template.EndDate, "dd/mm/yyyy") & ").",
+                                                NotificationType.Warning, 5000
+                                            )
+                                        )
+                                    )
+                                )
+                              SelectedDate: =varEditSubEndDate
+                              Visible: =varEditSubTaskID = ThisItem.ID
+                              Width: =155
+                              X: =170
+                              Y: =40
+                        - btn_sub_edit_save_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =ColorFade(Self.Fill, -15%)
+                              Color: =RGBA(255, 255, 255, 1)
+                              DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                              DisabledFill: =RGBA(214, 221, 224, 1)
+                              DisplayMode: |-
+                                =If(
+                                    IsBlank(varEditSubStartDate) || IsBlank(varEditSubEndDate),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(199, 91, 0, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =32
+                              HoverFill: =RGBA(168, 75, 0, 1)
+                              OnSelect: |-
+                                =If(IsError(
+                                    Patch(Template_SubTask,
+                                        LookUp(Template_SubTask, ID = varEditSubTaskID),
+                                        {
+                                            StartDate: varEditSubStartDate,
+                                            EndDate: varEditSubEndDate
+                                        })),
+                                    Notify("❌ Error updating dates.", NotificationType.Error),
+                                    ClearCollect(colSubTasksNoTemplate,
+                                        Filter(Template_SubTask, template_idf = reg_template.ID));
+                                    Set(varEditSubTaskID, 0);
+                                    Set(varEditSubStartDate, Blank());
+                                    Set(varEditSubEndDate, Blank());
+                                    Notify("✅ Dates updated.", NotificationType.Success, 2000)
+                                )
+                              PressedFill: =RGBA(140, 60, 0, 0.8)
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Size: =10
+                              Text: ="✅"
+                              Visible: =varEditSubTaskID = ThisItem.ID
+                              Width: =34
+                              X: =333
+                              Y: =40
+            - lbl_s3_subtasks_empty_9:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Center
+                  FontColor: =RGBA(203, 213, 225, 1)
+                  Height: =40
+                  Size: =11
+                  Text: ="No subtasks added yet for this template."
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 3 && CountRows(colSubTasksNoTemplate) = 0
+                  Width: =384
+                  X: =20
+                  Y: =487
+            - lbl_s4_selection_indicator_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: |-
+                    =If(varSelectedTaskNode.ID = 0,
+                        RGBA(192, 57, 43, 1),
+                        RGBA(0, 74, 128, 1))
+                  Height: =36
+                  Size: =12
+                  Text: |-
+                    =If(varSelectedTaskNode.ID = 0,
+                        "←  Select a Task or SubTask on the right to set its precedence",
+                        If(varSelectedTaskNode.tipo = "subtask",
+                            "✓  SubTask: " & varSelectedTaskNode.SubTaskName & " (" & varSelectedTaskNode.TaskName & ")",
+                            "✓  Task: " & varSelectedTaskNode.TaskName))
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 4
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =384
+                  X: =20
+                  Y: =224
+            - lbl_s4_prec_type_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="PRECEDING TYPE  *"
+                  Visible: =varCompStep_ = 4
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =276
+            - btn_s4_prec_type_task_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =If(varSelectedPrecType = "Task", RGBA(0, 103, 176, 1), RGBA(226, 232, 240, 1))
+                  BorderThickness: =1.5
+                  Color: =If(varSelectedPrecType = "Task", RGBA(0, 103, 176, 1), RGBA(100, 116, 139, 1))
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =If(varSelectedPrecType = "Task", RGBA(240, 247, 253, 1), RGBA(255, 255, 255, 1))
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =52
+                  HoverBorderColor: =RGBA(0, 103, 176, 1)
+                  HoverFill: =If(varSelectedPrecType = "Task", RGBA(232, 243, 251, 1), RGBA(248, 250, 252, 1))
+                  OnSelect: =Set(varSelectedPrecType, "Task")
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  Size: =12
+                  Text: |-
+                    ="🔗" & Char(10) & "Task"
+                  Visible: =varCompStep_ = 4
+                  Width: =120
+                  X: =20
+                  Y: =296
+            - btn_s4_prec_type_subtask_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =If(varSelectedPrecType = "Sub-task", RGBA(0, 103, 176, 1), RGBA(226, 232, 240, 1))
+                  BorderThickness: =1.5
+                  Color: =If(varSelectedPrecType = "Sub-task", RGBA(0, 103, 176, 1), RGBA(100, 116, 139, 1))
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =If(varSelectedPrecType = "Sub-task", RGBA(240, 247, 253, 1), RGBA(255, 255, 255, 1))
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =52
+                  HoverBorderColor: =RGBA(0, 103, 176, 1)
+                  HoverFill: =If(varSelectedPrecType = "Sub-task", RGBA(232, 243, 251, 1), RGBA(248, 250, 252, 1))
+                  OnSelect: =Set(varSelectedPrecType, "Sub-task")
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  Size: =12
+                  Text: ="⛓" & Char(10) & "Sub-task"
+                  Visible: =varCompStep_ = 4
+                  Width: =120
+                  X: =152
+                  Y: =296
+            - btn_s4_prec_type_manual_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =If(varSelectedPrecType = "Manual Date", RGBA(0, 103, 176, 1), RGBA(226, 232, 240, 1))
+                  BorderThickness: =1.5
+                  Color: =If(varSelectedPrecType = "Manual Date", RGBA(0, 103, 176, 1), RGBA(100, 116, 139, 1))
+                  DisplayMode: =If(varSelectedTaskNode.ID = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =If(varSelectedPrecType = "Manual Date", RGBA(240, 247, 253, 1), RGBA(255, 255, 255, 1))
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =52
+                  HoverBorderColor: =RGBA(0, 103, 176, 1)
+                  HoverFill: =If(varSelectedPrecType = "Manual Date", RGBA(232, 243, 251, 1), RGBA(248, 250, 252, 1))
+                  OnSelect: =Set(varSelectedPrecType, "Manual Date")
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  Size: =12
+                  Text: |-
+                    ="📅" & Char(10) & "Manual"
+                  Visible: =varCompStep_ = 4
+                  Width: =120
+                  X: =284
+                  Y: =296
+            - lbl_s4_prec_task_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="PRECEDING TASK"
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Task"
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =362
+            - cbb_s4_prec_task_10:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayFields: =["TaskName"]
+                  FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  Height: =38
+                  InputTextPlaceholder: ="Select…"
+                  IsSearchable: =false
+                  Items: |-
+                    =Filter(
+                        colPrecTasksCatalog,
+                        ID <> varSelectedTaskNode.ID
+                    )
+
+                    /*
+                    Filter(
+                        colPrecTasksCatalog;
+                        ID <> varSelectedTaskNode.ID
+                        && !(ID in col_precedentes.preceding_task_idf)
+                    )
+                    */
+                  OnChange: |-
+                    =If(!IsBlank(Self.Selected),
+                        With(
+                            {vStart: DateAdd(Self.Selected.EndDate, 1, TimeUnit.Days),
+                             vDur: If(varSelectedTaskNode.tipo = "subtask",
+                                 Coalesce(LookUp(colSubTasksNoTemplate,
+                                     ID = varSelectedTaskNode.subtask_idf).durationindays, 1),
+                                 Coalesce(LookUp(col_ordertask,
+                                     ID = varSelectedTaskNode.ID).DurationInDays, 1))},
+                            Set(varV4PrecStartDate, vStart);
+                            Set(varV4PrecEndDate,
+                                DateAdd(vStart, vDur - 1, TimeUnit.Days))
+                        )
+                    )
+                  SearchFields: =["ComplianceAssetId"]
+                  SelectMultiple: =false
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Task"
+                  Width: =384
+                  X: =20
+                  Y: =380
+            - lbl_s4_prec_subtask_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="PRECEDING SUBTASK"
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Sub-task"
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =362
+            - cbb_s4_prec_subtask_10:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayFields: =["SubTaskName"]
+                  FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  Height: =38
+                  InputTextPlaceholder: ="Select…"
+                  Items: |-
+                    =AddColumns(
+                        Filter(
+                            colPrecSubTasksCatalog,
+                            !(ID in col_precedentes.preceding_subtask_idf)
+                        ),
+                        SubTaskLabel,
+                        SubTaskName & " " & Char(183) & " " & LookUp(col_ordertask, ID = task_idf).TaskName
+                    )
+                  OnChange: |-
+                    =If(!IsBlank(Self.Selected),
+                        With(
+                            {vStart: DateAdd(LookUp(colSubTasksNoTemplate,
+                                 ID = Self.Selected.ID).EndDate, 1, TimeUnit.Days),
+                             vDur: If(varSelectedTaskNode.tipo = "subtask",
+                                 Coalesce(LookUp(colSubTasksNoTemplate,
+                                     ID = varSelectedTaskNode.subtask_idf).durationindays, 1),
+                                 Coalesce(LookUp(col_ordertask,
+                                     ID = varSelectedTaskNode.ID).DurationInDays, 1))},
+                            Set(varV4PrecStartDate, vStart);
+                            Set(varV4PrecEndDate,
+                                DateAdd(vStart, vDur - 1, TimeUnit.Days))
+                        )
+                    )
+                  SearchFields: =["SubTaskName"]
+                  SelectMultiple: =false
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Sub-task"
+                  Width: =384
+                  X: =20
+                  Y: =380
+            - lbl_s4_manual_start_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="START DATE"
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Manual Date"
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =20
+                  Y: =362
+            - lbl_s4_manual_end_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="END DATE"
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Manual Date"
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =185
+                  X: =219
+                  Y: =362
+            - dp_s4_manual_start_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: |-
+                    =If(
+                        !IsBlank(Self.SelectedDate) && varSelectedTaskNode.ID > 0,
+                        Set(varV4PrecStartDate, Self.SelectedDate);
+                        Set(varV4PrecEndDate,
+                            DateAdd(Self.SelectedDate,
+                                If(varSelectedTaskNode.tipo = "subtask",
+                                    Coalesce(LookUp(colSubTasksNoTemplate,
+                                        ID = varSelectedTaskNode.subtask_idf).durationindays, 1),
+                                    Coalesce(LookUp(col_ordertask,
+                                        ID = varSelectedTaskNode.ID).DurationInDays, 1)) - 1,
+                                TimeUnit.Days))
+                    )
+                  SelectedDate: =varV4PrecStartDate
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Manual Date"
+                  Width: =185
+                  X: =20
+                  Y: =380
+            - dp_s4_manual_end_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: =""
+                  SelectedDate: =varV4PrecEndDate
+                  Visible: =varCompStep_ = 4 && varSelectedPrecType = "Manual Date"
+                  Width: =185
+                  X: =219
+                  Y: =380
+            - btn_s4_add_precedence_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: |-
+                    =If(
+                        varSelectedTaskNode.ID = 0 || IsBlank(varSelectedPrecType) ||
+                        (varSelectedPrecType = "Task" && IsBlank(cbb_s4_prec_task_10.Selected)) ||
+                        (varSelectedPrecType = "Sub-task" && IsBlank(cbb_s4_prec_subtask_10.Selected)) ||
+                        (varSelectedPrecType = "Manual Date" && (IsBlank(dp_s4_manual_start_10.SelectedDate) || IsBlank(dp_s4_manual_end_10.SelectedDate))) ||
+                        !IsBlank(If(varSelectedTaskNode.tipo = "subtask",
+                            LookUp(col_precedentes,
+                                subtask_idf = varSelectedTaskNode.subtask_idf &&
+                                task_idf = varSelectedTaskNode.task_idf),
+                            LookUp(col_precedentes,
+                                task_idf = varSelectedTaskNode.task_idf &&
+                                subtask_idf = 0))),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Fill: =RGBA(26, 122, 74, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =36
+                  HoverFill: =RGBA(20, 95, 57, 1)
+                  OnSelect: |+
+                    =With(
+                        {
+                            vIsSubTaskDependente: varSelectedTaskNode.tipo = "subtask",
+                            vDependenteTaskIdf: varSelectedTaskNode.task_idf,
+                            vDependenteSubTaskIdf: If(varSelectedTaskNode.tipo = "subtask", varSelectedTaskNode.subtask_idf, 0),
+                            vPrecedingTaskRecordId: If(varSelectedPrecType = "Task", cbb_s4_prec_task_10.Selected.ID, 0),
+                            vPrecedingSubTaskRecordId: If(varSelectedPrecType = "Sub-task", cbb_s4_prec_subtask_10.Selected.ID, 0),
+                            vStartDateFinal: If(
+                                varSelectedPrecType = "Manual Date",
+                                dp_s4_manual_start_10.SelectedDate,
+                                varV4PrecStartDate
+                            ),
+                            vEndDateFinal: If(
+                                varSelectedPrecType = "Manual Date",
+                                dp_s4_manual_end_10.SelectedDate,
+                                varV4PrecEndDate
+                            )
+                        },
+                        With(
+                            {
+                                vRegistroExistenteDependente: If(
+                                    vIsSubTaskDependente,
+                                    LookUp(
+                                        Template_Precedente_DEV,
+                                        template_idf = reg_template.ID &&
+                                        task_idf = vDependenteTaskIdf &&
+                                        subtask_idf = vDependenteSubTaskIdf
+                                    ),
+                                    LookUp(
+                                        Template_Precedente_DEV,
+                                        template_idf = reg_template.ID &&
+                                        task_idf = vDependenteTaskIdf &&
+                                        subtask_idf = 0
+                                    )
+                                ),
+                                vSelfReference: If(
+                                    varSelectedPrecType = "Task" && !vIsSubTaskDependente,
+                                    vPrecedingTaskRecordId = varSelectedTaskNode.ID,
+                                    If(
+                                        varSelectedPrecType = "Sub-task" && vIsSubTaskDependente,
+                                        vPrecedingSubTaskRecordId = varSelectedTaskNode.subtask_idf,
+                                        false
+                                    )
+                                ),
+                                vCicloDireto: If(
+                                    varSelectedPrecType = "Task",
+                                    !IsBlank(
+                                        LookUp(
+                                            Template_Precedente_DEV,
+                                            template_idf = reg_template.ID &&
+                                            preceding_task_idf = varSelectedTaskNode.ID &&
+                                            task_idf = LookUp(col_ordertask, ID = vPrecedingTaskRecordId).task_idf &&
+                                            subtask_idf = 0
+                                        )
+                                    ),
+                                    If(
+                                        varSelectedPrecType = "Sub-task",
+                                        !IsBlank(
+                                            LookUp(
+                                                Template_Precedente_DEV,
+                                                template_idf = reg_template.ID &&
+                                                preceding_subtask_idf = varSelectedTaskNode.subtask_idf &&
+                                                subtask_idf = vPrecedingSubTaskRecordId
+                                            )
+                                        ),
+                                        false
+                                    )
+                                )
+                            },
+                            If(
+                                IsBlank(varSelectedTaskNode) || IsBlank(varSelectedTaskNode.ID),
+                                Notify("Please select a dependent Task or Sub Task.", NotificationType.Warning),
+
+                                IsBlank(varSelectedPrecType),
+                                Notify("Please select a precedence type.", NotificationType.Warning),
+
+                                varSelectedPrecType = "Task" && IsBlank(cbb_s4_prec_task_10.Selected),
+                                Notify("Please select a predecessor Task.", NotificationType.Warning),
+
+                                varSelectedPrecType = "Sub-task" && IsBlank(cbb_s4_prec_subtask_10.Selected),
+                                Notify("Please select a predecessor Sub Task.", NotificationType.Warning),
+
+                                varSelectedPrecType = "Manual Date" && (
+                                    IsBlank(dp_s4_manual_start_10.SelectedDate) ||
+                                    IsBlank(dp_s4_manual_end_10.SelectedDate)
+                                ),
+                                Notify("Please provide both start and end dates for manual precedence.", NotificationType.Warning),
+
+                                !IsBlank(vRegistroExistenteDependente),
+                                Notify("This dependent item already has a defined predecessor.", NotificationType.Warning),
+
+                                vSelfReference,
+                                Notify("An item cannot be its own predecessor.", NotificationType.Warning),
+
+                                !IsBlank(vStartDateFinal) && !IsBlank(vEndDateFinal) && vEndDateFinal < vStartDateFinal,
+                                Notify("End date cannot be earlier than start date.", NotificationType.Warning),
+
+                                vCicloDireto,
+                                Notify("Invalid relationship. A direct dependency cycle was detected.", NotificationType.Warning),
+
+                                true,
+                                With(
+                                    {
+                                        vPatchPrec: IfError(
+                                            Patch(
+                                                Template_Precedente_DEV,
+                                                Defaults(Template_Precedente_DEV),
+                                                {
+                                                    template_idf: reg_template.ID,
+                                                    task_idf: vDependenteTaskIdf,
+                                                    subtask_idf: vDependenteSubTaskIdf,
+                                                    precedence_type: varSelectedPrecType,
+                                                    preceding_task_idf: vPrecedingTaskRecordId,
+                                                    preceding_subtask_idf: vPrecedingSubTaskRecordId,
+                                                    StartDate: vStartDateFinal,
+                                                    EndDate: vEndDateFinal
+                                                }
+                                            ),
+                                            Blank()
+                                        )
+                                    },
+                                    If(
+                                        IsBlank(vPatchPrec),
+                                        Notify("❌ Failed to save precedence.", NotificationType.Error),
+                                        Notify("✅ Precedence saved successfully.", NotificationType.Success, 2500);
+                                        ClearCollect(
+                                            col_precedentes,
+                                            Filter(
+                                                Template_Precedente_DEV,
+                                                template_idf = reg_template.ID
+                                            )
+                                        );
+                                        Set(varSelectedTaskNode, Blank());
+                                        Set(varSelectedPrecType, "");
+                                        Set(varV4PrecStartDate, Blank());
+                                        Set(varV4PrecEndDate, Blank());
+                                        Reset(cbb_s4_prec_task_10);
+                                        Reset(cbb_s4_prec_subtask_10);
+                                        Reset(dp_s4_manual_start_10);
+                                        Reset(dp_s4_manual_end_10)
+                                    )
+                                )
+                            )
+                        )
+                    )
+
+
+
+
+
+                  PressedFill: =RGBA(20, 95, 57, 0.8)
+                  RadiusBottomLeft: =7
+                  RadiusBottomRight: =7
+                  RadiusTopLeft: =7
+                  RadiusTopRight: =7
+                  Size: =12
+                  Text: ="＋  Add Precedence"
+                  Visible: =varCompStep_ = 4
+                  Width: =384
+                  X: =20
+                  Y: =460
+            - lbl_s4_prec_added_title_10:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="PRECEDENCES SET"
+                  Visible: =varCompStep_ = 4 && CountRows(col_precedentes) > 0
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =384
+                  X: =20
+                  Y: =484
+            - gal_s4_prec_list_10:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Height: =150
+                  Items: |-
+                    =If(varSelectedTaskNode.ID > 0,
+                        If(varSelectedTaskNode.tipo = "subtask",
+                            Filter(col_precedentes,
+                                subtask_idf = varSelectedTaskNode.subtask_idf &&
+                                task_idf = varSelectedTaskNode.task_idf),
+                            Filter(col_precedentes,
+                                task_idf = varSelectedTaskNode.task_idf &&
+                                subtask_idf = 0)
+                        ),
+                        col_precedentes
+                    )
+                  LoadingSpinner: =LoadingSpinner.None
+                  TemplatePadding: =2
+                  TemplateSize: =36
+                  Visible: =varCompStep_ = 4 && CountRows(col_precedentes) > 0
+                  Width: =384
+                  X: =20
+                  Y: =503
+                Children:
+                  - rect_s4_prec_row_10:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(241, 245, 249, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(248, 250, 252, 1)
+                        Height: =36
+                        Width: =380
+                  - lbl_s4_prec_type_badge_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderThickness: =0
+                        Color: =RGBA(0, 103, 176, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(232, 243, 251, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =22
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Size: =9
+                        Text: =ThisItem.precedence_type
+                        Width: =70
+                        X: =6
+                        Y: =7
+                  - lbl_s4_prec_name_10:
+                      Control: Text@0.0.51
+                      Properties:
+                        FontColor: =RGBA(15, 23, 42, 1)
+                        Height: =36
+                        Size: =11
+                        Text: |-
+                          =If(ThisItem.precedence_type = "Task",
+                              Coalesce(LookUp(col_ordertask, ID = ThisItem.preceding_task_idf).TaskName, "—"),
+                              If(ThisItem.precedence_type = "Sub-task",
+                                  Coalesce(LookUp(colSubTasksNoTemplate, ID = ThisItem.preceding_subtask_idf).SubTaskName, "—"),
+                                  Text(ThisItem.StartDate, "dd/mm/yyyy") & " → " & Text(ThisItem.EndDate, "dd/mm/yyyy")
+                              )
+                          )
+                        VerticalAlign: =VerticalAlign.Middle
+                        Weight: ='TextCanvas.Weight'.Semibold
+                        Width: =240
+                        X: =84
+                  - btn_s4_prec_row_delete_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderThickness: =0
+                        Color: =RGBA(192, 57, 43, 1)
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FontWeight: =FontWeight.Bold
+                        Height: =36
+                        HoverFill: =RGBA(253, 237, 236, 1)
+                        OnSelect: |-
+                          =If(Confirm("Remove this precedence?"),
+                              If(IsError(Remove(Template_Precedente_DEV, ThisItem)),
+                                  Notify("❌ Error removing precedence.", NotificationType.Error),
+                                  ClearCollect(col_precedentes,
+                                      Filter(Template_Precedente_DEV, template_idf = reg_template.ID));
+                                  Notify("✅ Precedence removed.", NotificationType.Success, 2000)
+                              )
+                          )
+                        PressedFill: =RGBA(253, 237, 236, 0.8)
+                        Size: =12
+                        Text: |-
+                          ="🗑"
+                        Width: =36
+                        X: =344
+            - lbl_s4_prec_empty_9:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Center
+                  FontColor: =RGBA(203, 213, 225, 1)
+                  Height: =40
+                  Size: =11
+                  Text: ="No precedences configured yet."
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ = 4 && CountRows(col_precedentes) = 0
+                  Width: =384
+                  X: =20
+                  Y: =503
+            - cnt_right_header_10:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(248, 250, 252, 1)
+                  Height: =48
+                  Visible: =varCompStep_ >= 2
+                  Width: =635
+                  X: =425
+                  Y: =164
+            - lbl_right_title_10:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Start
+                  FontColor: |-
+                    =If(varCompStep_ = 2,
+                        RGBA(51, 65, 85, 1),
+                        RGBA(0, 103, 176, 1))
+                  Height: =22
+                  Size: =13
+                  Text: |-
+                    =Switch(varCompStep_,
+                        2, "Template Structure",
+                        3, If(varSelectedTaskNode.ID > 0,
+                                "SubTasks of: " & varSelectedTaskNode.TaskName,
+                                "All SubTasks"),
+                        4, "Click a task to set its precedence")
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varCompStep_ >= 2
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =260
+                  X: =443
+                  Y: =177
+            - lbl_right_task_count_10:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisplayMode: =DisplayMode.View
+                  Fill: =RGBA(0, 103, 176, 1)
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  RadiusBottomLeft: =20
+                  RadiusBottomRight: =20
+                  RadiusTopLeft: =20
+                  RadiusTopRight: =20
+                  Size: =11
+                  Text: =Text(CountRows(col_ordertask)) & " tasks"
+                  Visible: =varCompStep_ >= 2
+                  Width: =70
+                  X: =740
+                  Y: =178
+            - gal_tree_10:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  Height: =390
+                  Items: =Sort(col_ordertask, OrdemTask, SortOrder.Ascending)
+                  LoadingSpinner: =LoadingSpinner.None
+                  TemplateSize: =108
+                  Visible: =varCompStep_ >= 2 && varCompStep_ <> 4
+                  Width: =615
+                  X: =435
+                  Y: =212
+                Children:
+                  - cnt_tree_card_10:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderColor: |-
+                          =If(varEditTaskID = ThisItem.ID,
+                              RGBA(199, 91, 0, 1),
+                              If(varCompStep_ = 2 && varEditTaskNode.ID = ThisItem.ID,
+                                  RGBA(0, 103, 176, 1),
+                                  If(varCompStep_ >= 3 && varSelectedTaskNode.ID = ThisItem.ID,
+                                      RGBA(0, 103, 176, 1),
+                                      RGBA(226, 232, 240, 1))))
+                        BorderThickness: =1.5
+                        DropShadow: =DropShadow.None
+                        Fill: |-
+                          =If(varEditTaskID = ThisItem.ID,
+                              RGBA(255, 252, 245, 1),
+                              RGBA(255, 255, 255, 1))
+                        Height: =100
+                        RadiusBottomLeft: =10
+                        RadiusBottomRight: =10
+                        RadiusTopLeft: =10
+                        RadiusTopRight: =10
+                        Width: =603
+                      Children:
+                        - lbl_tree_card_area_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: =RGBA(0, 103, 176, 1)
+                              DisplayMode: =DisplayMode.View
+                              Fill: =RGBA(232, 243, 251, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =20
+                              RadiusBottomLeft: =20
+                              RadiusBottomRight: =20
+                              RadiusTopLeft: =20
+                              RadiusTopRight: =20
+                              Size: =9
+                              Text: =Upper(ThisItem.functional_area)
+                              Width: =90
+                              X: =10
+                              Y: =10
+                        - lbl_tree_card_name_10:
+                            Control: Text@0.0.51
+                            Properties:
+                              Align: ='TextCanvas.Align'.Start
+                              FontColor: =RGBA(15, 23, 42, 1)
+                              Height: =22
+                              Size: =13
+                              Text: =ThisItem.TaskName & If(ThisItem.IsMilestone, "  ⭐", "")
+                              VerticalAlign: =VerticalAlign.Middle
+                              Weight: ='TextCanvas.Weight'.Bold
+                              Width: =238
+                              X: =98
+                              Y: =9
+                        - btn_tree_order_up_8:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(226, 232, 240, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(100, 116, 139, 1)
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(
+                                    ThisItem.OrdemTask = Min(col_ordertask, OrdemTask) ||
+                                    (varEditTaskID > 0 && varEditTaskID <> ThisItem.ID),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        vThisOrdem: ThisItem.OrdemTask,
+                                        vAboveItem: LookUp(col_ordertask,
+                                            OrdemTask = ThisItem.OrdemTask - 1)
+                                    },
+                                    If(!IsBlank(vAboveItem),
+                                        Patch(Template_Task,
+                                            LookUp(Template_Task, ID = vAboveItem.ID),
+                                            {OrdemTask: vThisOrdem});
+                                        Patch(Template_Task,
+                                            LookUp(Template_Task, ID = ThisItem.ID),
+                                            {OrdemTask: vAboveItem.OrdemTask});
+                                        ClearCollect(col_ordertask,
+                                            Filter(Template_Task, template_idf = reg_template.ID));
+                                        Notify("✅ Order updated.", NotificationType.Success, 1500)
+                                    )
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="▲"
+                              Width: =24
+                              X: =344
+                              Y: =9
+                        - btn_tree_order_down_8:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(226, 232, 240, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(100, 116, 139, 1)
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(
+                                    ThisItem.OrdemTask = Max(col_ordertask, OrdemTask) ||
+                                    (varEditTaskID > 0 && varEditTaskID <> ThisItem.ID),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =With(
+                                    {
+                                        vThisOrdem: ThisItem.OrdemTask,
+                                        vBelowItem: LookUp(col_ordertask,
+                                            OrdemTask = ThisItem.OrdemTask + 1)
+                                    },
+                                    If(!IsBlank(vBelowItem),
+                                        Patch(Template_Task,
+                                            LookUp(Template_Task, ID = vBelowItem.ID),
+                                            {OrdemTask: vThisOrdem});
+                                        Patch(Template_Task,
+                                            LookUp(Template_Task, ID = ThisItem.ID),
+                                            {OrdemTask: vBelowItem.OrdemTask});
+                                        ClearCollect(col_ordertask,
+                                            Filter(Template_Task, template_idf = reg_template.ID));
+                                        Notify("✅ Order updated.", NotificationType.Success, 1500)
+                                    )
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="▼"
+                              Width: =24
+                              X: =372
+                              Y: =9
+                        - btn_tree_edit_date_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: |-
+                                =If(varEditTaskID = ThisItem.ID,
+                                    RGBA(199, 91, 0, 1),
+                                    RGBA(226, 232, 240, 1))
+                              BorderThickness: =1
+                              Color: |-
+                                =If(varEditTaskID = ThisItem.ID,
+                                    RGBA(199, 91, 0, 1),
+                                    RGBA(0, 103, 176, 1))
+                              DisabledBorderColor: =RGBA(241, 245, 249, 1)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(248, 250, 252, 1)
+                              DisplayMode: |-
+                                =If(varEditTaskID > 0 && varEditTaskID <> ThisItem.ID,
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: |-
+                                =If(varEditTaskID = ThisItem.ID,
+                                    RGBA(255, 247, 240, 1),
+                                    RGBA(255, 255, 255, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(240, 247, 253, 1)
+                              OnSelect: |-
+                                =If(varEditTaskID = ThisItem.ID,
+                                    Set(varEditTaskID, 0);
+                                    Set(varEditStartDate, Blank());
+                                    Set(varEditEndDate, Blank()),
+                                    Set(varEditTaskID, ThisItem.ID);
+                                    Set(varEditStartDate, ThisItem.StartDate);
+                                    Set(varEditEndDate, ThisItem.EndDate)
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: =If(varEditTaskID = ThisItem.ID, "✕", "✏")
+                              Width: =24
+                              X: =400
+                              Y: =9
+                        - btn_tree_card_delete_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: =RGBA(192, 57, 43, 1)
+                              DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                              DisabledColor: =RGBA(203, 213, 225, 1)
+                              DisabledFill: =RGBA(0, 0, 0, 0)
+                              DisplayMode: |-
+                                =If(varEditTaskID > 0,
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              FontWeight: =FontWeight.Bold
+                              Height: =22
+                              HoverFill: =RGBA(253, 237, 236, 1)
+                              OnSelect: |-
+                                =If(
+                                    CountRows(Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf)) > 0,
+                                    Notify("⚠️ Remove all SubTasks from this Task before deleting.", NotificationType.Warning, 3500),
+                                    If(
+                                        !IsBlank(LookUp(col_precedentes,
+                                            task_idf = ThisItem.task_idf && subtask_idf = 0)),
+                                        Notify("⚠️ Remove the precedence linked to this Task before deleting.", NotificationType.Warning, 3500),
+                                        If(Confirm("Remove this Task?"),
+                                            If(IsError(Remove(Template_Task, ThisItem)),
+                                                Notify("❌ Error removing Task.", NotificationType.Error),
+                                                ClearCollect(col_ordertask,
+                                                    Filter(Template_Task, template_idf = reg_template.ID));
+                                                If(varSelectedTaskNode.ID = ThisItem.ID,
+                                                    Set(varSelectedTaskNode, Blank()));
+                                                Notify("✅ Task removed.", NotificationType.Success, 2000)
+                                            )
+                                        )
+                                    )
+                                )
+                              PressedFill: =RGBA(253, 237, 236, 0.8)
+                              RadiusBottomLeft: =5
+                              RadiusBottomRight: =5
+                              RadiusTopLeft: =5
+                              RadiusTopRight: =5
+                              Size: =11
+                              Text: |-
+                                ="🗑"
+                              Width: =24
+                              X: =428
+                              Y: =9
+                        - lbl_tree_card_sub_count_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: |-
+                                =If(CountRows(Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf)) > 0,
+                                    RGBA(0, 103, 176, 1),
+                                    RGBA(148, 163, 184, 1))
+                              DisplayMode: =DisplayMode.View
+                              Fill: |-
+                                =If(CountRows(Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf)) > 0,
+                                    RGBA(232, 243, 251, 1),
+                                    RGBA(241, 245, 249, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =20
+                              RadiusBottomLeft: =20
+                              RadiusBottomRight: =20
+                              RadiusTopLeft: =20
+                              RadiusTopRight: =20
+                              Size: =9
+                              Text: =Text(CountRows(Filter(colSubTasksNoTemplate, task_idf = ThisItem.task_idf))) & " sub"
+                              Width: =52
+                              X: =460
+                              Y: =10
+                        - lbl_tree_card_visible_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: =If(ThisItem.IsVisible, RGBA(26, 122, 74, 1), RGBA(148, 163, 184, 1))
+                              DisplayMode: =DisplayMode.View
+                              Fill: =If(ThisItem.IsVisible, RGBA(232, 245, 238, 1), RGBA(241, 245, 249, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =20
+                              RadiusBottomLeft: =20
+                              RadiusBottomRight: =20
+                              RadiusTopLeft: =20
+                              RadiusTopRight: =20
+                              Size: =9
+                              Text: =If(ThisItem.IsVisible, "Visible", "Hidden")
+                              Width: =62
+                              X: =515
+                              Y: =10
+                        - lbl_tree_card_dates_10:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =18
+                              Size: =10
+                              Text: |-
+                                =Text(ThisItem.StartDate, "dd/mm/yyyy") & " → " &
+                                Text(ThisItem.EndDate, "dd/mm/yyyy")
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =varEditTaskID <> ThisItem.ID
+                              Width: =240
+                              X: =10
+                              Y: =38
+                        - lbl_edit_start_label_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =14
+                              Size: =9
+                              Text: ="START DATE"
+                              Visible: =varEditTaskID = ThisItem.ID
+                              Weight: ='TextCanvas.Weight'.Bold
+                              Width: =178
+                              X: =10
+                              Y: =39
+                        - lbl_edit_end_label_7:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(100, 116, 139, 1)
+                              Height: =14
+                              Size: =9
+                              Text: ="END DATE"
+                              Visible: =varEditTaskID = ThisItem.ID
+                              Weight: ='TextCanvas.Weight'.Bold
+                              Width: =178
+                              X: =196
+                              Y: =39
+                        - dp_edit_task_start_7:
+                            Control: DatePicker@0.0.46
+                            Properties:
+                              BorderColor: =RGBA(199, 91, 0, 1)
+                              Format: =DateTimeFormat.ShortDate
+                              Height: =38
+                              OnChange: |-
+                                =If(
+                                    !IsBlank(Self.SelectedDate),
+                                    If(
+                                        !IsBlank(varEditEndDate) && Self.SelectedDate > varEditEndDate,
+                                        Notify("Start date cannot be later than end date.", NotificationType.Warning, 3000);
+                                        Reset(Self),
+                                        Set(varEditStartDate, Self.SelectedDate);
+                                        If(
+                                            Self.SelectedDate < reg_template.StartDate || Self.SelectedDate > reg_template.EndDate,
+                                            Notify(
+                                                "⚠️ Start date is outside the template scope (" &
+                                                Text(reg_template.StartDate, "dd/mm/yyyy") & " – " &
+                                                Text(reg_template.EndDate, "dd/mm/yyyy") & ").",
+                                                NotificationType.Warning, 5000
+                                            )
+                                        )
+                                    )
+                                )
+                              SelectedDate: =varEditStartDate
+                              Visible: =varEditTaskID = ThisItem.ID
+                              Width: =178
+                              X: =10
+                              Y: =53
+                        - dp_edit_task_end_7:
+                            Control: DatePicker@0.0.46
+                            Properties:
+                              BorderColor: =RGBA(199, 91, 0, 1)
+                              Format: =DateTimeFormat.ShortDate
+                              Height: =38
+                              OnChange: |-
+                                =If(
+                                    !IsBlank(Self.SelectedDate),
+                                    If(
+                                        !IsBlank(varEditStartDate) && Self.SelectedDate < varEditStartDate,
+                                        Notify("End date cannot be earlier than start date.", NotificationType.Warning, 3000);
+                                        Reset(Self),
+                                        Set(varEditEndDate, Self.SelectedDate);
+                                        If(
+                                            Self.SelectedDate < reg_template.StartDate || Self.SelectedDate > reg_template.EndDate,
+                                            Notify(
+                                                "⚠️ End date is outside the template scope (" &
+                                                Text(reg_template.StartDate, "dd/mm/yyyy") & " – " &
+                                                Text(reg_template.EndDate, "dd/mm/yyyy") & ").",
+                                                NotificationType.Warning, 5000
+                                            )
+                                        )
+                                    )
+                                )
+                              SelectedDate: =varEditEndDate
+                              Visible: =varEditTaskID = ThisItem.ID
+                              Width: =178
+                              X: =196
+                              Y: =53
+                        - btn_edit_task_save_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =ColorFade(Self.Fill, -15%)
+                              Color: =RGBA(255, 255, 255, 1)
+                              DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                              DisabledFill: =RGBA(214, 221, 224, 1)
+                              DisplayMode: |-
+                                =If(
+                                    IsBlank(varEditStartDate) || IsBlank(varEditEndDate),
+                                    DisplayMode.Disabled,
+                                    DisplayMode.Edit)
+                              Fill: =RGBA(199, 91, 0, 1)
+                              FontWeight: =FontWeight.Bold
+                              Height: =36
+                              HoverFill: =RGBA(168, 75, 0, 1)
+                              OnSelect: |-
+                                =If(IsError(
+                                    Patch(Template_Task,
+                                        LookUp(Template_Task, ID = varEditTaskID),
+                                        {
+                                            StartDate: varEditStartDate,
+                                            EndDate: varEditEndDate
+                                        })),
+                                    Notify("❌ Error updating dates.", NotificationType.Error),
+                                    ClearCollect(col_ordertask,
+                                        Filter(Template_Task, template_idf = reg_template.ID));
+                                    Set(varEditTaskID, 0);
+                                    Set(varEditStartDate, Blank());
+                                    Set(varEditEndDate, Blank());
+                                    Notify("✅ Dates updated.", NotificationType.Success, 2000)
+                                )
+                              PressedFill: =RGBA(140, 60, 0, 0.8)
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Size: =11
+                              Text: ="✅  Save Dates"
+                              Visible: =varEditTaskID = ThisItem.ID
+                              Width: =148
+                              X: =382
+                              Y: =53
+                        - btn_tree_edit_milestone_8:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: |-
+                                =If(ThisItem.IsMilestone,
+                                    RGBA(0, 103, 176, 1),
+                                    RGBA(226, 232, 240, 1))
+                              BorderThickness: =1
+                              Color: |-
+                                =If(ThisItem.IsMilestone,
+                                    RGBA(0, 103, 176, 1),
+                                    RGBA(148, 163, 184, 1))
+                              DisplayMode: =If(varEditTaskID > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Fill: |-
+                                =If(ThisItem.IsMilestone,
+                                    RGBA(232, 243, 251, 1),
+                                    RGBA(248, 250, 252, 1))
+                              Height: =22
+                              HoverFill: =RGBA(232, 243, 251, 1)
+                              OnSelect: |-
+                                =If(IsError(Patch(Template_Task, ThisItem, {IsMilestone: !ThisItem.IsMilestone})),
+                                    Notify("❌ Error updating Milestone.", NotificationType.Error),
+                                    ClearCollect(col_ordertask,
+                                        Filter(Template_Task, template_idf = reg_template.ID));
+                                    Notify("✅ Milestone updated.", NotificationType.Success, 1500)
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =9
+                              Text: =If(ThisItem.IsMilestone, "⭐ Milestone", "☆ Milestone")
+                              Visible: =varEditTaskID <> ThisItem.ID
+                              Width: =90
+                              X: =258
+                              Y: =38
+                        - btn_tree_edit_visible_8:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: |-
+                                =If(ThisItem.IsVisible,
+                                    RGBA(26, 122, 74, 1),
+                                    RGBA(226, 232, 240, 1))
+                              BorderThickness: =1
+                              Color: |-
+                                =If(ThisItem.IsVisible,
+                                    RGBA(26, 122, 74, 1),
+                                    RGBA(148, 163, 184, 1))
+                              DisplayMode: =If(varEditTaskID > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Fill: |-
+                                =If(ThisItem.IsVisible,
+                                    RGBA(232, 245, 238, 1),
+                                    RGBA(248, 250, 252, 1))
+                              Height: =22
+                              HoverFill: =RGBA(232, 245, 238, 1)
+                              OnSelect: |-
+                                =If(IsError(Patch(Template_Task, ThisItem, {IsVisible: !ThisItem.IsVisible})),
+                                    Notify("❌ Error updating Visibility.", NotificationType.Error),
+                                    ClearCollect(col_ordertask,
+                                        Filter(Template_Task, template_idf = reg_template.ID));
+                                    Notify("✅ Visibility updated.", NotificationType.Success, 1500)
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =9
+                              Text: |-
+                                =If(ThisItem.IsVisible, "👁 Visible", "🚫 Hidden")
+                              Visible: =varEditTaskID <> ThisItem.ID
+                              Width: =82
+                              X: =352
+                              Y: =38
+                        - btn_tree_add_subtask_7:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 103, 176, 0.3)
+                              BorderThickness: =1
+                              Color: =RGBA(0, 103, 176, 1)
+                              DisplayMode: =If(varEditTaskID > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Fill: =RGBA(240, 247, 253, 1)
+                              Height: =22
+                              HoverFill: =RGBA(224, 239, 252, 1)
+                              OnSelect: |-
+                                =Set(varSelectedTaskNode, ThisItem);
+                                Set(varCompStep_, 3);
+                                ClearCollect(colSubTasksCatalog, Filter(Sub_task, task_idf = ThisItem.task_idf));
+                                If(varCompStep_ = 2,
+                                    Set(varEditTaskNode, ThisItem);
+                                    Set(varV4TaskEndDate, ThisItem.EndDate);
+                                    Set(varTogMilestone, ThisItem.IsMilestone);
+                                    Set(varTogVisible, ThisItem.IsVisible),
+                                    If(varCompStep_ >= 3,
+                                        Set(varSelectedTaskNode, ThisItem))
+                                )
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =9
+                              Text: ="＋ SubTask"
+                              Visible: =varEditTaskID <> ThisItem.ID
+                              Width: =82
+                              X: =440
+                              Y: =38
+                        - rect_tree_hitbox_10:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              DisplayMode: =If(varEditTaskID > 0, DisplayMode.Disabled, DisplayMode.Edit)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Height: =38
+                              HoverFill: =RGBA(0, 103, 176, 0.04)
+                              OnSelect: |-
+                                =ClearCollect(colSubTasksCatalog,
+                                    Filter(Sub_task, task_idf = ThisItem.task_idf));
+                                Set(varSelectedTaskNode, ThisItem);
+                                If(varCompStep_ = 2,
+                                    Set(varEditTaskNode, ThisItem);
+                                    Set(varV4TaskEndDate, ThisItem.EndDate);
+                                    Set(varTogMilestone, ThisItem.IsMilestone);
+                                    Set(varTogVisible, ThisItem.IsVisible),
+                                    If(varCompStep_ >= 3,
+                                        Set(varSelectedTaskNode, ThisItem))
+                                )
+                              PressedFill: =RGBA(0, 103, 176, 0.08)
+                              Width: =350
+            - gal_prec_flat_10:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  Height: =390
+                  Items: =Sort(colPrecFlat, ordemSort, SortOrder.Ascending)
+                  LoadingSpinner: =LoadingSpinner.None
+                  TemplatePadding: =4
+                  TemplateSize: =52
+                  Visible: =varCompStep_ = 4
+                  Width: =615
+                  X: =435
+                  Y: =212
+                Children:
+                  - cnt_prec_flat_card_10:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderColor: |-
+                          =If(varSelectedTaskNode.ID = ThisItem.ID,
+                              RGBA(0, 103, 176, 1),
+                              RGBA(226, 232, 240, 1))
+                        BorderThickness: =1.5
+                        DropShadow: =DropShadow.None
+                        Fill: |-
+                          =If(ThisItem.tipo = "subtask",
+                              RGBA(248, 250, 252, 1),
+                              RGBA(255, 255, 255, 1))
+                        Height: =48
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =603
+                      Children:
+                        - lbl_prec_flat_indent_10:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Fill: |-
+                                =If(ThisItem.tipo = "subtask",
+                                    RGBA(0, 103, 176, 0.15),
+                                    RGBA(0, 0, 0, 0))
+                              Height: =48
+                              Width: =4
+                        - lbl_prec_flat_icon_8:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: |-
+                                =If(ThisItem.tipo = "subtask",
+                                    RGBA(100, 116, 139, 1),
+                                    RGBA(0, 103, 176, 1))
+                              DisplayMode: =DisplayMode.View
+                              Fill: |-
+                                =If(ThisItem.tipo = "subtask",
+                                    RGBA(241, 245, 249, 1),
+                                    RGBA(232, 243, 251, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =20
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =9
+                              Text: =If(ThisItem.tipo = "subtask", "SUB", "TASK")
+                              Width: =40
+                              X: =12
+                              Y: =14
+                        - lbl_prec_flat_name_10:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(15, 23, 42, 1)
+                              Height: =26
+                              Size: =12
+                              Text: =ThisItem.displayName
+                              VerticalAlign: =VerticalAlign.Middle
+                              Weight: ='TextCanvas.Weight'.Semibold
+                              Width: =340
+                              X: =60
+                              Y: =10
+                        - lbl_prec_flat_ref_8:
+                            Control: Text@0.0.51
+                            Properties:
+                              FontColor: =RGBA(148, 163, 184, 1)
+                              Height: =18
+                              Size: =9
+                              Text: =If(ThisItem.tipo = "subtask", "↳ " & ThisItem.subRef, "")
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =340
+                              X: =56
+                              Y: =28
+                        - lbl_prec_flat_badge_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: |-
+                                =If(!IsBlank(If(ThisItem.tipo = "subtask",
+                                        LookUp(col_precedentes,
+                                            subtask_idf = ThisItem.ID &&
+                                            task_idf = ThisItem.task_idf),
+                                        LookUp(col_precedentes,
+                                            task_idf = ThisItem.task_idf &&
+                                            subtask_idf = 0))),
+                                    RGBA(26, 122, 74, 1),
+                                    RGBA(148, 163, 184, 1))
+                              DisplayMode: =DisplayMode.View
+                              Fill: |-
+                                =If(!IsBlank(If(ThisItem.tipo = "subtask",
+                                        LookUp(col_precedentes,
+                                            subtask_idf = ThisItem.ID &&
+                                            task_idf = ThisItem.task_idf),
+                                        LookUp(col_precedentes,
+                                            task_idf = ThisItem.task_idf &&
+                                            subtask_idf = 0))),
+                                    RGBA(232, 245, 238, 1),
+                                    RGBA(241, 245, 249, 1))
+                              FontWeight: =FontWeight.Bold
+                              Height: =20
+                              RadiusBottomLeft: =20
+                              RadiusBottomRight: =20
+                              RadiusTopLeft: =20
+                              RadiusTopRight: =20
+                              Size: =9
+                              Text: |-
+                                =If(!IsBlank(If(ThisItem.tipo = "subtask",
+                                        LookUp(col_precedentes,
+                                            subtask_idf = ThisItem.ID &&
+                                            task_idf = ThisItem.task_idf),
+                                        LookUp(col_precedentes,
+                                            task_idf = ThisItem.task_idf &&
+                                            subtask_idf = 0))),
+                                    "✓ Set",
+                                    "Not set")
+                              Width: =60
+                              X: =505
+                              Y: =14
+                        - btn_prec_flat_delete_10:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              BorderThickness: =0
+                              Color: =RGBA(192, 57, 43, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              FontWeight: =FontWeight.Bold
+                              Height: =28
+                              HoverFill: =RGBA(253, 237, 236, 1)
+                              OnSelect: |-
+                                =With(
+                                    {vPrec: If(ThisItem.tipo = "subtask",
+                                        LookUp(Template_Precedente_DEV,
+                                            subtask_idf = ThisItem.ID &&
+                                            task_idf = ThisItem.task_idf &&
+                                            template_idf = reg_template.ID),
+                                        LookUp(Template_Precedente_DEV,
+                                            subtask_idf = 0 &&
+                                            task_idf = ThisItem.task_idf &&
+                                            template_idf = reg_template.ID))},
+                                    If(!IsBlank(vPrec),
+                                        If(Confirm("Remove this precedence?"),
+                                            If(IsError(Remove(Template_Precedente_DEV, vPrec)),
+                                                Notify("❌ Error removing precedence.", NotificationType.Error),
+                                                ClearCollect(col_precedentes,
+                                                    Filter(Template_Precedente_DEV, template_idf = reg_template.ID));
+                                                If(varSelectedTaskNode.ID = ThisItem.ID,
+                                                    Set(varSelectedTaskNode, Blank()));
+                                                Set(varSelectedPrecType, "");
+                                                Notify("✅ Precedence removed.", NotificationType.Success, 2000)
+                                            )
+                                        ),
+                                        Notify("ℹ️ No precedence set for this item.", NotificationType.Information, 2000)
+                                    )
+                                )
+                              PressedFill: =RGBA(253, 237, 236, 0.8)
+                              RadiusBottomLeft: =5
+                              RadiusBottomRight: =5
+                              RadiusTopLeft: =5
+                              RadiusTopRight: =5
+                              Size: =11
+                              Text: |-
+                                ="🗑"
+                              Width: =30
+                              X: =568
+                              Y: =10
+                        - rect_prec_flat_hitbox_10:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Height: =48
+                              HoverFill: =RGBA(0, 103, 176, 0.05)
+                              OnSelect: |-
+                                =ClearCollect(colPrecSubTasksCatalog, Filter(Template_SubTask, template_idf = reg_template.ID));
+                                ClearCollect(colPrecTasksCatalog, col_ordertask);
+                                Set(varSelectedTaskNode,
+                                    {tipo: ThisItem.tipo,
+                                     ID: ThisItem.ID,
+                                     TaskName: If(ThisItem.tipo = "task",
+                                         ThisItem.displayName,
+                                         ThisItem.subRef),
+                                     task_idf: ThisItem.task_idf,
+                                     subtask_idf: If(ThisItem.tipo = "subtask", ThisItem.ID, 0),
+                                     SubTaskName: If(ThisItem.tipo = "subtask", ThisItem.displayName, "")})
+                              PressedFill: =RGBA(0, 103, 176, 0.08)
+                              Width: =530
+            - lbl_right_empty_state_10:
+                Control: Text@0.0.51
+                Properties:
+                  Align: ='TextCanvas.Align'.Center
+                  FontColor: =RGBA(203, 213, 225, 1)
+                  Height: =38
+                  Size: =12
+                  Text: |-
+                    =If(varCompStep_ = 3,
+                        "📭" & Char(10) & "No SubTasks yet. Select a task and add SubTasks.",
+                        "🗂" & Char(10) & "No tasks yet. Use the form to add the first task.")
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: |-
+                    =(varCompStep_ >= 2 && varCompStep_ <> 3 &&
+                        CountRows(Filter(Template_Task, template_idf = reg_template.ID)) = 0) ||
+                    (varCompStep_ = 3 &&
+                        CountRows(colSubTasksNoTemplate) = 0)
+                  Width: =615
+                  X: =435
+                  Y: =296
+            - cnt_footer_8:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1
+                  Fill: =RGBA(248, 250, 252, 1)
+                  Height: =52
+                  Width: =cnt_popup_35.Width
+                  Y: =628
+                Children:
+                  - btn_footer_gantt_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(226, 232, 240, 1)
+                        BorderThickness: =1.5
+                        Color: =If(reg_template.ID > 0 && varTemplateMode = "edit", RGBA(51, 65, 85, 1), RGBA(148, 163, 184, 1))
+                        DisabledBorderColor: =RGBA(226, 232, 240, 1)
+                        DisabledColor: =RGBA(148, 163, 184, 1)
+                        DisabledFill: =RGBA(248, 250, 252, 1)
+                        DisplayMode: =If(reg_template.ID > 0 && varTemplateMode = "edit", DisplayMode.Edit, DisplayMode.Disabled)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =32
+                        HoverBorderColor: =RGBA(148, 163, 184, 1)
+                        HoverFill: =RGBA(248, 250, 252, 1)
+                        OnSelect: |-
+                          =Set(varViewTask, true);
+                          Navigate(GantChart_Template)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =12
+                        Text: |-
+                          ="📊  Gantt Chart"
+                        Width: =140
+                        X: =20
+                        Y: =10
+                  - btn_footer_masterplan_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(226, 232, 240, 1)
+                        BorderThickness: =1.5
+                        Color: =RGBA(51, 65, 85, 1)
+                        DisabledBorderColor: =RGBA(226, 232, 240, 1)
+                        DisabledColor: =RGBA(148, 163, 184, 1)
+                        DisabledFill: =RGBA(248, 250, 252, 1)
+                        DisplayMode: =If(reg_template.ID > 0 && varTemplateMode = "edit", DisplayMode.Edit, DisplayMode.Disabled)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =32
+                        HoverBorderColor: =RGBA(148, 163, 184, 1)
+                        HoverFill: =RGBA(248, 250, 252, 1)
+                        OnSelect: =Notify("Master Plan — coming soon", NotificationType.Information, 2000)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =12
+                        Text: |-
+                          ="📋  Master Plan"
+                        Width: =140
+                        X: =170
+                        Y: =10
+                  - btn_footer_duplicate_8:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(199, 91, 0, 0.4)
+                        BorderThickness: =1.5
+                        Color: =RGBA(199, 91, 0, 1)
+                        DisabledBorderColor: =RGBA(226, 232, 240, 1)
+                        DisabledColor: =RGBA(148, 163, 184, 1)
+                        DisabledFill: =RGBA(248, 250, 252, 1)
+                        DisplayMode: |-
+                          =If(
+                              reg_template.Status.Value = "Published" && reg_template.ID > 0,
+                              DisplayMode.Edit,
+                              DisplayMode.Disabled
+                          )
+                        Fill: =RGBA(255, 247, 240, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =32
+                        HoverBorderColor: =RGBA(199, 91, 0, 1)
+                        HoverFill: =RGBA(255, 237, 220, 1)
+                        OnSelect: |-
+                          =Set(varDuplicateName, reg_template.Name & " Copy");
+                          Set(varDuplicateDialogOpen, true)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =12
+                        Text: ="⧉  Duplicate"
+                        Width: =140
+                        X: =320
+                        Y: =10
+                  - btn_footer_close_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(226, 232, 240, 1)
+                        BorderThickness: =1.5
+                        Color: =RGBA(51, 65, 85, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        HoverBorderColor: =RGBA(148, 163, 184, 1)
+                        HoverFill: =RGBA(248, 250, 252, 1)
+                        OnSelect: |-
+                          =Set(varEditTaskID, 0);
+                          Set(varEditStartDate, Blank());
+                          Set(varEditEndDate, Blank());
+                          Set(varEditSubTaskID, 0);
+                          Set(varEditSubStartDate, Blank());
+                          Set(varEditSubEndDate, Blank());
+                          Set(varCompositionOpen, false);
+                          Set(varTemplateMode, "");
+                          Set(varCompStep_, 1);
+                          Set(varSelectedTaskNode, Blank());
+                          Set(varEditTaskNode, Blank());
+                          Set(varSelectedPrecType, "");
+                          Set(varV4View, "tree")
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =12
+                        Text: ="Close"
+                        Width: =100
+                        X: =840
+                        Y: =10
+                  - btn_footer_next_10:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        Color: =RGBA(255, 255, 255, 1)
+                        Fill: =RGBA(0, 103, 176, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        HoverFill: =RGBA(0, 74, 128, 1)
+                        OnSelect: |-
+                          =Set(varEditTaskID, 0);
+                          Set(varEditStartDate, Blank());
+                          Set(varEditEndDate, Blank());
+                          Set(varEditSubTaskID, 0);
+                          Set(varEditSubStartDate, Blank());
+                          Set(varEditSubEndDate, Blank());
+                          If(varCompStep_ = 1,
+                              If(reg_template.ID = 0,
+                                  Notify("⚠️ Save the template definition first.", NotificationType.Warning, 3000),
+                                  Set(varCompStep_, 2);
+                                  Set(varSelectedTaskNode, Blank());
+                                  Set(varEditTaskNode, Blank())
+                              ),
+                              If(varCompStep_ = 2,
+                                  If(!IsBlank(varEditTaskNode),
+                                      Notify("⚠️ Finish editing the selected task first.", NotificationType.Warning, 3000),
+                                      If(CountRows(Filter(Template_Task, template_idf = reg_template.ID)) = 0,
+                                          Notify("⚠️ Add at least one Task before proceeding.", NotificationType.Warning, 3000),
+                                          Set(varCompStep_, 3);
+                                          Set(varSelectedTaskNode, Blank())
+                                      )
+                                  ),
+                                  If(varCompStep_ = 3,
+                                      Set(varCompStep_, 4);
+                                      ClearCollect(colPrecFlat,
+                                          AddColumns(col_ordertask,
+                                              tipo, "task",
+                                              displayName, TaskName,
+                                              ordemSort, OrdemTask * 100,
+                                              subRef, ""));
+                                      Collect(colPrecFlat,
+                                          AddColumns(colSubTasksNoTemplate,
+                                              tipo, "subtask",
+                                              displayName, SubTaskName,
+                                              ordemSort, LookUp(col_ordertask, task_idf = task_idf).OrdemTask * 100 + OrdemSubTask,
+                                              subRef, LookUp(col_ordertask, task_idf = task_idf).TaskName));
+                                      Set(varSelectedTaskNode, Blank());
+                                      Set(varSelectedPrecType, ""),
+                                      Notify("✅ Template composition saved!", NotificationType.Success, 2500);
+                                      Set(varCompositionOpen, false);
+                                      Set(varTemplateMode, "");
+                                      Set(varCompStep_, 1);
+                                      Set(varEditTaskNode, Blank());
+                                      Set(varV4View, "tree");
+                                      Navigate(Template_Screen)
+                                  )
+                              )
+                          )
+                        PressedFill: =RGBA(0, 74, 128, 0.8)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =12
+                        Text: |-
+                          =Switch(varCompStep_,
+                              1, "Go to Tasks  →",
+                              2, "Go to SubTasks  →",
+                              3, "Go to Precedences  →",
+                              4, "✅  Finish"
+                          )
+                        Width: =200
+                        X: =840
+                        Y: =10
+            - cbb_s2_task_10:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  DisplayFields: =["Name"]
+                  DisplayMode: =If(IsBlank(cbb_s2_functional_area_10.Selected), DisplayMode.Disabled, DisplayMode.Edit)
+                  FocusedBorderColor: =RGBA(0, 103, 176, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  Height: =38
+                  InputTextPlaceholder: ="Select…"
+                  IsSearchable: =false
+                  Items: |-
+                    =Filter(
+                        Tasks_processs,
+                        FunctionalArea_Name = cbb_s2_functional_area_10.Selected.NameArea
+                        && !(ID in col_ordertask.task_idf)
+                    )
+                  OnChange: |-
+                    =If(
+                        !IsBlank(cbb_s2_task_10.Selected),
+                        Set(varV4TaskEndDate,
+                            DateAdd(dp_s2_start_date_10.SelectedDate,
+                                cbb_s2_task_10.Selected.DurationInDays - 1,
+                                TimeUnit.Days))
+                    )
+                  SearchFields: =[""]
+                  SelectMultiple: =false
+                  Visible: =varCompStep_ = 2
+                  Width: =384
+                  X: =20
+                  Y: =352
+            - dp_s2_start_date_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: |-
+                    =If(
+                        !IsBlank(Self.SelectedDate) && !IsBlank(dp_s2_end_date_10.SelectedDate),
+                        If(Self.SelectedDate > dp_s2_end_date_10.SelectedDate,
+                            Notify("Start date cannot be later than end date.", NotificationType.Warning, 3000);
+                            Reset(Self)
+                        )
+                    )
+                  SelectedDate: =If(!IsBlank(varEditTaskNode), varEditTaskNode.StartDate, reg_template.StartDate)
+                  Visible: =varCompStep_ = 2
+                  Width: =185
+                  X: =20
+                  Y: =420
+            - dp_s2_end_date_10:
+                Control: DatePicker@0.0.46
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  Format: =DateTimeFormat.ShortDate
+                  Height: =38
+                  OnChange: |-
+                    =If(
+                        !IsBlank(Self.SelectedDate),
+                        If(Self.SelectedDate > reg_template.EndDate,
+                            Notify("⚠️ End date exceeds the template limit.", NotificationType.Warning, 3000);
+                            Reset(Self),
+                            If(!IsBlank(dp_s2_start_date_10.SelectedDate) && Self.SelectedDate < dp_s2_start_date_10.SelectedDate,
+                                Notify("End date cannot be earlier than start date.", NotificationType.Warning, 3000);
+                                Reset(Self)
+                            )
+                        )
+                    )
+                  SelectedDate: =If(!IsBlank(varEditTaskNode), varEditTaskNode.EndDate, varV4TaskEndDate)
+                  Visible: =varCompStep_ = 2
+                  Width: =185
+                  X: =219
+                  Y: =420
+      - rect_duplicate_overlay_8:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 0, 0, 0)
+            Fill: =RGBA(0, 0, 0, 0.35)
+            Height: =App.Height
+            Visible: =varDuplicateDialogOpen
+            Width: =App.ActiveScreen.Width
+      - cnt_duplicate_dialog_8:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            BorderColor: =RGBA(226, 232, 240, 1)
+            BorderThickness: =1
+            DropShadow: =DropShadow.Heavy
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =260
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            Visible: =varDuplicateDialogOpen
+            Width: =520
+            X: =App.ActiveScreen.Width / 2 - 260
+            Y: =App.ActiveScreen.Height / 2 - 130
+          Children:
+            - cnt_dup_header_8:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(199, 91, 0, 1)
+                  Height: =56
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =520
+                Children:
+                  - lbl_dup_header_icon_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Center
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =36
+                        Size: =18
+                        Text: ="⧉"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =36
+                        X: =16
+                        Y: =10
+                  - lbl_dup_header_title_8:
+                      Control: Text@0.0.51
+                      Properties:
+                        Align: ='TextCanvas.Align'.Start
+                        FontColor: =RGBA(255, 255, 255, 1)
+                        Height: =24
+                        Text: ="Duplicate Template"
+                        VerticalAlign: =VerticalAlign.Middle
+                        Weight: ='TextCanvas.Weight'.Bold
+                        Width: =380
+                        X: =60
+                        Y: =16
+                  - btn_dup_close_8:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Color: =RGBA(255, 255, 255, 1)
+                        Height: =28
+                        Icon: =Icon.CancelBadge
+                        OnSelect: =Set(varDuplicateDialogOpen, false)
+                        Width: =28
+                        X: =480
+                        Y: =14
+            - lbl_dup_name_label_8:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(100, 116, 139, 1)
+                  Height: =16
+                  Size: =10
+                  Text: ="NEW TEMPLATE NAME  *"
+                  Weight: ='TextCanvas.Weight'.Bold
+                  Width: =480
+                  X: =20
+                  Y: =76
+            - inp_dup_name_8:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(203, 213, 225, 1)
+                  Default: =varDuplicateName
+                  FocusedBorderColor: =RGBA(199, 91, 0, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Open Sans'
+                  HoverBorderColor: =RGBA(148, 163, 184, 1)
+                  MaxLength: =40
+                  Width: =480
+                  X: =20
+                  Y: =96
+            - lbl_dup_info_8:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(148, 163, 184, 1)
+                  Height: =18
+                  Size: =10
+                  Text: |-
+                    ="This will copy all Tasks, SubTasks and Precedences. Status: Development."
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =IsBlank(LookUp(Templates, Name = Trim(inp_dup_name_8.Text)))
+                  Width: =480
+                  X: =20
+                  Y: =144
+            - lbl_dup_name_error_8:
+                Control: Text@0.0.51
+                Properties:
+                  FontColor: =RGBA(192, 57, 43, 1)
+                  Height: =18
+                  Size: =10
+                  Text: ="⚠️  A template with this name already exists. Please choose a different name."
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: |-
+                    =!IsBlank(inp_dup_name_8.Text) &&
+                    !IsBlank(LookUp(Templates, Name = Trim(inp_dup_name_8.Text)))
+                  Weight: ='TextCanvas.Weight'.Semibold
+                  Width: =480
+                  X: =20
+                  Y: =144
+            - btn_dup_cancel_8:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(226, 232, 240, 1)
+                  BorderThickness: =1.5
+                  Color: =RGBA(51, 65, 85, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =36
+                  HoverBorderColor: =RGBA(148, 163, 184, 1)
+                  HoverFill: =RGBA(248, 250, 252, 1)
+                  OnSelect: =Set(varDuplicateDialogOpen, false)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =12
+                  Text: ="Cancel"
+                  Width: =150
+                  X: =20
+                  Y: =204
+            - btn_dup_confirm_8:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(214, 221, 224, 1)
+                  DisabledFill: =RGBA(214, 221, 224, 1)
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(inp_dup_name_8.Text) || Len(Trim(inp_dup_name_8.Text)) = 0 ||
+                        !IsBlank(LookUp(Templates, Name = Trim(inp_dup_name_8.Text))) ||
+                        reg_template.Status.Value <> "Published" || reg_template.ID = 0,
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Fill: =RGBA(199, 91, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =36
+                  HoverFill: =RGBA(168, 75, 0, 1)
+                  OnSelect: |-
+                    =If(
+                        reg_template.Status.Value <> "Published" || reg_template.ID = 0,
+                        Notify("⚠️ Only Published templates can be duplicated.", NotificationType.Warning, 3500),
+                        If(
+                            !IsBlank(LookUp(Templates, Name = Trim(inp_dup_name_8.Text))),
+                            Notify("⚠️ A template with this name already exists. Please choose a different name.", NotificationType.Warning, 4000),
+                            ClearCollect(colDupTasks,
+                                Filter(Template_Task, template_idf = reg_template.ID));
+                            ClearCollect(colDupSubTasks,
+                                Filter(Template_SubTask, template_idf = reg_template.ID));
+                            ClearCollect(colDupPrecs,
+                                Filter(Template_Precedente_DEV, template_idf = reg_template.ID));
+                            With(
+                                {
+                                    vNewTemplate: IfError(
+                                        Patch(Templates, Defaults(Templates), {
+                                            Name: Trim(inp_dup_name_8.Text),
+                                            Status: {Value: "Development"},
+                                            bussinesunit_desc: reg_template.bussinesunit_desc,
+                                            BusinessUnit_ID: reg_template.BusinessUnit_ID,
+                                            StartDate: reg_template.StartDate,
+                                            EndDate: reg_template.EndDate
+                                        }),
+                                        Blank()
+                                    )
+                                },
+                                If(IsBlank(vNewTemplate),
+                                    Notify("❌ Error creating duplicate template.", NotificationType.Error),
+                                    ForAll(
+                                        colDupTasks,
+                                        Patch(Template_Task, Defaults(Template_Task), {
+                                            TemplateName: vNewTemplate.Name,
+                                            functional_area: functional_area,
+                                            functional_area_id: functional_area_id,
+                                            template_idf: vNewTemplate.ID,
+                                            TaskName: TaskName,
+                                            task_idf: task_idf,
+                                            OrdemTask: OrdemTask,
+                                            StartDate: StartDate,
+                                            EndDate: EndDate,
+                                            IsMilestone: IsMilestone,
+                                            IsVisible: IsVisible,
+                                            Status: Status
+                                        })
+                                    );
+                                    ForAll(
+                                        colDupSubTasks,
+                                        Patch(Template_SubTask, Defaults(Template_SubTask), {
+                                            SubTaskName: SubTaskName,
+                                            subtask_idf: subtask_idf,
+                                            durationindays: durationindays,
+                                            StartDate: StartDate,
+                                            EndDate: EndDate,
+                                            function_area_idf: function_area_idf,
+                                            template_idf: vNewTemplate.ID,
+                                            task_idf: task_idf,
+                                            OrdemSubTask: OrdemSubTask,
+                                            Status: Status
+                                        })
+                                    );
+                                    ForAll(
+                                        colDupPrecs,
+                                        Patch(Template_Precedente_DEV, Defaults(Template_Precedente_DEV), {
+                                            template_idf: vNewTemplate.ID,
+                                            task_idf: task_idf,
+                                            subtask_idf: subtask_idf,
+                                            precedence_type: precedence_type,
+                                            preceding_task_idf: preceding_task_idf,
+                                            preceding_subtask_idf: preceding_subtask_idf,
+                                            StartDate: StartDate,
+                                            EndDate: EndDate
+                                        })
+                                    );
+                                    Set(varDuplicateDialogOpen, false);
+                                    Notify("✅ Template duplicated successfully! Open it from the template list.", NotificationType.Success, 4000)
+                                )
+                            )
+                        )
+                    )
+                  PressedFill: =RGBA(140, 60, 0, 0.8)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =12
+                  Text: ="⧉  Duplicate Template"
+                  Width: =330
+                  X: =170
+                  Y: =204
+      - btn_test_new_11:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Color: =RGBA(255, 255, 255, 1)
+            Fill: =RGBA(0, 103, 176, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =36
+            HoverFill: =RGBA(0, 74, 128, 1)
+            OnSelect: |-
+              =Set(reg_template, Blank());
+              Set(varTemplateMode, "new");
+              Set(varCompStep_, 1);
+              Set(varS1Status, "Development");
+              Set(varSelectedTaskNode, Blank());
+              Set(varEditTaskNode, Blank());
+              Set(varTogMilestone, false);
+              Set(varTogVisible, true);
+              Set(varSelectedPrecType, "");
+              Set(varV4View, "tree");
+              Set(varV4TaskEndDate, Blank());
+              Set(varV4SubEndDate, Blank());
+              Set(varV4PrecStartDate, Blank());
+              Set(varV4PrecEndDate, Blank());
+              Set(varEditTaskID, 0);
+              Set(varEditStartDate, Blank());
+              Set(varEditEndDate, Blank());
+              Set(varEditSubTaskID, 0);
+              Set(varEditSubStartDate, Blank());
+              Set(varEditSubEndDate, Blank());
+              ClearCollect(col_ordertask, Filter(Template_Task, ID = 0));
+              ClearCollect(colSubTasksNoTemplate, Filter(Template_SubTask, ID = 0));
+              ClearCollect(col_precedentes, Filter(Template_Precedente_DEV, ID = 0));
+              ClearCollect(colSubTasksCatalog, Filter(Sub_task, ID = 0));
+              ClearCollect(colPrecTasksCatalog, Filter(Template_Task, ID = 0));
+              ClearCollect(colPrecSubTasksCatalog, Filter(Template_SubTask, ID = 0));
+              ClearCollect(colPrecFlat,
+                  AddColumns(col_ordertask,
+                      tipo, "task",
+                      displayName, TaskName,
+                      ordemSort, OrdemTask * 100,
+                      subRef, ""));
+              Collect(colPrecFlat,
+                  AddColumns(colSubTasksNoTemplate,
+                      tipo, "subtask",
+                      displayName, SubTaskName,
+                      ordemSort, LookUp(col_ordertask, task_idf = task_idf).OrdemTask * 100 + OrdemSubTask,
+                      subRef, LookUp(col_ordertask, task_idf = task_idf).TaskName));
+              Reset(inp_s1_name_3);
+              Reset(cbb_s1_bu_3);
+              Reset(dp_s1_start_date_3);
+              Reset(dp_s1_end_date_3);
+              Reset(cbb_s2_functional_area_3);
+              Reset(cbb_s2_task_3);
+              Reset(dp_s2_start_date_3);
+              Reset(dp_s2_end_date_3);
+              Reset(cbb_s3_subtask_3);
+              Reset(dp_s3_start_date_3);
+              Reset(dp_s3_end_date_3);
+              Reset(cbb_s4_prec_task_3);
+              Reset(cbb_s4_prec_subtask_3);
+              Reset(dp_s4_manual_start_3);
+              Reset(dp_s4_manual_end_3);
+              Set(varCompositionOpen, true)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =13
+            Text: ="＋  New Template"
+            Visible: =false
+            Width: =200
+            X: =40
+            Y: =40
+      - btn_test_edit_10:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Color: =RGBA(255, 255, 255, 1)
+            Fill: =RGBA(26, 122, 74, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =36
+            HoverFill: =RGBA(20, 95, 57, 1)
+            OnSelect: |-
+              =Set(reg_template, LookUp(Templates, ID = 285));
+              Set(varTemplateMode, "edit");
+              Set(varCompStep_, 1);
+              Set(varSelectedTaskNode, Blank());
+              Set(varSelectedPrecType, "");
+              Set(varV4View, "tree");
+              Set(varV4TaskEndDate, Blank());
+              ClearCollect(col_ordertask, Filter(Template_Task, template_idf = reg_template.ID));
+              ClearCollect(colSubTasksNoTemplate, Filter(Template_SubTask, template_idf = reg_template.ID));
+              ClearCollect(col_precedentes, Filter(Template_Precedente_DEV, template_idf = reg_template.ID));
+              Set(varEditTaskID, 0);
+              Set(varEditStartDate, Blank());
+              Set(varEditEndDate, Blank());
+              Set(varEditSubTaskID, 0);
+              Set(varEditSubStartDate, Blank());
+              Set(varEditSubEndDate, Blank());
+              Set(varCompositionOpen, true)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =13
+            Text: ="✏  Edit Template (ID 245)"
+            Visible: =false
+            Width: =220
+            X: =40
+            Y: =115
